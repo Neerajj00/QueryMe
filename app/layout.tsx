@@ -1,37 +1,29 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type React from "react"
+import type { Metadata } from "next"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
+import "./globals.css"
+import { ClerkProvider } from "@clerk/nextjs"
 
 export const metadata: Metadata = {
-  title: "QueryMe AI",
-  description:
-    "QueryMe AI is an AI-powered role-based database query system that allows users to retrieve data using natural language while ensuring security and privacy.",
-};
+  title: "v0 App",
+  description: "Created with v0",
+  generator: "v0.app",
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <ClerkProvider>{children}</ClerkProvider>
-      </body>
-    </html>
-  );
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`dark ${GeistSans.className} ${GeistMono.className}`}
+      >
+        <body>{children}</body>
+      </html>
+    </ClerkProvider>
+  )
 }
