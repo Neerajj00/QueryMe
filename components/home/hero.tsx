@@ -30,8 +30,8 @@ export default function Hero() {
               className="mb-8"
             >
               <h1 id="main-title" className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-                Reach <strong>developers</strong> <span>&</span> <br />
-                <strong>creators</strong> <em className="italic">effortlessly</em>
+              Query <strong>databases</strong> <br />
+using <strong>natural language</strong>
               </h1>
             </motion.div>
 
@@ -42,8 +42,7 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mx-auto mb-12 max-w-2xl text-lg text-muted-foreground"
             >
-              Beautiful, accessible components built with Tailwind CSS and Framer Motion. Copy, paste, and customize to
-              build your next project faster.
+              AI-powered system to convert natural language into SQL with secure, role-based access.
             </motion.p>
 
             <motion.div
@@ -90,7 +89,7 @@ export default function Hero() {
                           <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
                           <path d="M2 12h20"></path>
                         </svg>
-                        Get started
+                        Try Query System
                       </p>
                     </div>
                     <div className="text-muted-foreground group-hover:ml-4 ease-in-out transition-all size-[24px] flex items-center justify-center rounded-full border-2 border-border">
@@ -124,21 +123,18 @@ export default function Hero() {
             className="mt-auto pb-8"
           >
             <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-6">Trusted by developers at</p>
+              <p className="text-sm text-muted-foreground mb-6">Built using modern technologies</p>
               <div className="flex items-center justify-center gap-8">
-                {/* Vercel Logo */}
-                <div className="opacity-60 grayscale hover:opacity-100 hover:grayscale-0 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-300">
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 512 512"
-                    className="h-8 w-8 fill-current text-foreground"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path fillRule="evenodd" d="M256,48,496,464H16Z" />
-                  </svg>
-                </div>
 
+                {/* gemini CSS Logo */}
+                <div className="opacity-60 grayscale hover:opacity-100 hover:grayscale-0 hover:drop-shadow-[0_0_8px_rgba(56,189,248,0.5)] transition-all duration-300">
+                  <img
+                    src="/gemini.png"
+                    alt="Tailwind CSS"
+                    className="h-10 object-contain  "
+                  />
+                </div>
+              
                 {/* Tailwind CSS Logo */}
                 <div className="opacity-60 grayscale hover:opacity-100 hover:grayscale-0 hover:drop-shadow-[0_0_8px_rgba(56,189,248,0.5)] transition-all duration-300">
                   <img
@@ -146,19 +142,6 @@ export default function Hero() {
                     alt="Tailwind CSS"
                     className="h-8 object-contain"
                   />
-                </div>
-
-                {/* Framer Logo */}
-                <div className="opacity-60 grayscale hover:opacity-100 hover:grayscale-0 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-300">
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    className="h-8 w-8 fill-current text-foreground"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M4 0h16v8h-8zM4 8h8l8 8H4zM4 16h8v8z" />
-                  </svg>
                 </div>
 
               
