@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import Hero from "@/components/home/hero";
 import Features from "@/components/features";
-import { SignInButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -169,10 +170,15 @@ export default function Home() {
 
         <div className="flex items-center gap-4">
           <SignInButton mode="modal">
-            <button className="cursor-pointer px-4 py-2 bg-white text-black rounded">
+            <Button variant={"ghost"}>
               Login
-            </button>
+            </Button>
           </SignInButton>
+          <SignUpButton>
+            <Button >
+              Sign Up
+            </Button>
+          </SignUpButton>
           
         </div>
       </header>
