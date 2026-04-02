@@ -85,10 +85,10 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">CLI & Manual Support</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">AI-Assisted Query Building</h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
                     <p className="max-w-[460px]">
-                      Integrate your landing page directly in the product while using your favorite tools.
+                    Generate complex SQL queries effortlessly using natural language and schema awareness.
                     </p>
                   </div>
                 </div>
@@ -162,7 +162,7 @@ export default function Features() {
                       <div className="flex items-center gap-8">
                         {/* Left Column */}
                         <div className="flex flex-col gap-3">
-                          {["Feature-1", "Feature-1", "Feature-1"].map((item, index) => (
+                          {["Complex Joins", "Aggregations", "Filters & Conditions"].map((item, index) => (
                             <motion.div
                               key={`left-${index}`}
                               className="bg-white rounded px-3 py-2 flex items-center gap-2 text-black text-sm font-medium shadow-sm"
@@ -174,11 +174,6 @@ export default function Features() {
                               }}
                               whileHover={{ scale: 1.05 }}
                             >
-                              <div className="w-4 h-4 flex items-center justify-center">
-                                {index === 0 && <span className="text-xs">📄</span>}
-                                {index === 1 && <span className="text-xs">💰</span>}
-                                {index === 2 && <span className="text-xs">🏢</span>}
-                              </div>
                               {item}
                             </motion.div>
                           ))}
@@ -193,7 +188,7 @@ export default function Features() {
                           whileHover={{ scale: 1.1, rotate: 5 }}
                         >
                           <img
-                            src="https://framerusercontent.com/images/q43ivjLz67lXhWf6TKfLIh0FY.png"
+                            src="favicon.png"
                             alt="Logo"
                             className="w-full h-full object-cover"
                           />
@@ -201,7 +196,7 @@ export default function Features() {
 
                         {/* Right Column */}
                         <div className="flex flex-col gap-3">
-                          {["Feature-1", "Feature-1", "Feature-1"].map((item, index) => (
+                          {["Group By Queries", "Nested Queries", "Data Insights"].map((item, index) => (
                             <motion.div
                               key={`right-${index}`}
                               className="bg-white rounded px-3 py-2 flex items-center gap-2 text-black text-sm font-medium shadow-sm"
@@ -213,11 +208,6 @@ export default function Features() {
                               }}
                               whileHover={{ scale: 1.05 }}
                             >
-                              <div className="w-4 h-4 flex items-center justify-center">
-                                {index === 0 && <span className="text-xs">👥</span>}
-                                {index === 1 && <span className="text-xs">💳</span>}
-                                {index === 2 && <span className="text-xs">👨‍⚕️</span>}
-                              </div>
                               {item}
                             </motion.div>
                           ))}
