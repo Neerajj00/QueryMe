@@ -6,10 +6,22 @@ import "./globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.app",
-}
+  title: "QueryMe – AI-Powered SQL Query Platform",
+  description:
+    "QueryMe lets you ask questions in plain English and get instant SQL queries and results. Secure, role-based, and schema-aware AI database querying.",
+  keywords: [
+    "AI SQL",
+    "natural language to SQL",
+    "database querying",
+    "SQL generator",
+    "RBAC",
+    "QueryMe",
+    "AI database tool",
+    "text to sql"
+  ],
+  authors: [{ name: "Neeraj Gupta" }],
+  creator: "Neeraj Gupta",
+};
 
 export default function RootLayout({
   children,

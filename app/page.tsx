@@ -2,12 +2,23 @@
 import { useState, useEffect } from "react";
 import Hero from "@/components/home/hero";
 import Features from "@/components/features";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/dashboard"); 
+    }
+  }, [isSignedIn, isLoaded, router]);
+
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -160,12 +171,15 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-4">
-          <SignInButton mode="modal">
+        <Show when="signed-out">
+          <SignInButton mode="modal" forceRedirectUrl="/dashboard">
             <Button variant={"ghost"}>Login</Button>
           </SignInButton>
-          <SignUpButton mode="modal">
+          <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
             <Button>Sign Up</Button>
           </SignUpButton>
+        </Show>
+        
         </div>
       </header>
 
@@ -244,10 +258,10 @@ export default function Home() {
                 FAQ
               </button>
               <div className="border-t border-border/50 pt-4 mt-4 flex flex-col space-y-3">
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <Button variant={"ghost"}>Login</Button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                   <Button>Sign Up</Button>
                 </SignUpButton>
               </div>

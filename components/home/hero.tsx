@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
+import { SignInButton } from '@clerk/nextjs';
 
 export default function Hero() {
   const [mounted, setMounted] = useState(false)
@@ -69,7 +70,7 @@ using <strong>natural language</strong>
 
               {/* Get started button */}
               <div className="flex items-center justify-center">
-                <a href="/docs/components/theme-toggle-animations">
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <div className="group cursor-pointer border border-border bg-card gap-2 h-[60px] flex items-center p-[10px] rounded-full">
                     <div className="border border-border bg-primary h-[40px] rounded-full flex items-center justify-center text-primary-foreground">
                       <p className="font-medium tracking-tight mr-3 ml-3 flex items-center gap-2 justify-center text-base">
@@ -89,6 +90,7 @@ using <strong>natural language</strong>
                           <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
                           <path d="M2 12h20"></path>
                         </svg>
+
                         Try Query System
                       </p>
                     </div>
@@ -110,7 +112,7 @@ using <strong>natural language</strong>
                       </svg>
                     </div>
                   </div>
-                </a>
+                  </SignInButton>
               </div>
             </motion.div>
           </div>
