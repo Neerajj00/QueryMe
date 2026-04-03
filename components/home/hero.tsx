@@ -2,8 +2,6 @@
 
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Sparkles } from "lucide-react"
 import { SignInButton } from '@clerk/nextjs';
 
 export default function Hero() {
