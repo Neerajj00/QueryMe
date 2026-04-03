@@ -1,9 +1,9 @@
 import React from 'react'
 
-function history() {
+function settings() {
   return (
-    <div>history</div>
+    <div>settings</div>
   )
 }
 
-export default history
+export default settings
