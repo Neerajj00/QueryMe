@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Separator } from '@/components/ui/separator';
+import Link from "next/link";
 
 export function NavProjects({
   projects,
@@ -27,13 +28,13 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild tooltip={item.name}>
-              <a href={item.url}>
+              <Link href={item.url}>
                 {item.icon}
                 {/* 👇 THIS LINE HANDLES COLLAPSE MAGIC */}
                 <span className="group-data-[collapsible=icon]:hidden truncate">
                   {item.name}
                 </span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
