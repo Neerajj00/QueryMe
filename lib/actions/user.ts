@@ -4,7 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 
 import { prisma } from "../prisma";
 
-export async function syncUser(){
+export async function SyncUser(){
     try {
         const user = await currentUser();
         if(!user) return;
@@ -22,6 +22,7 @@ export async function syncUser(){
                 email: user.emailAddresses[0]?.emailAddress || "",
                 name:user.firstName || "User",
                 role: process.env.ADMIN_EMAIL === user.emailAddresses[0]?.emailAddress ? "admin" : "user",
+                image: user.imageUrl
             }
         })
         

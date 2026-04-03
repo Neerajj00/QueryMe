@@ -11,9 +11,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { SyncUser } from "@/lib/actions/user"
 
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+    await SyncUser() // Ensure the clerk user is synced with your database before rendering the dashboard
     return (
       <SidebarProvider>
         <AppSidebar />
