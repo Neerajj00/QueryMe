@@ -2,7 +2,7 @@ import React from 'react'
 
 function page() {
   return (
-    <div>chat query page</div>
+    <div>databases page</div>
   )
 }
 
