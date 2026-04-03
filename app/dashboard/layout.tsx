@@ -12,7 +12,13 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { SyncUser } from "@/lib/actions/user"
+import { Metadata } from "next"
 
+export const metadata: Metadata = {
+  title: "Dashboard | QueryMe",
+  description:
+    "Access your AI-powered SQL workspace. Query databases using natural language, manage results, and explore data securely.",
+};
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     await SyncUser() // Ensure the clerk user is synced with your database before rendering the dashboard
