@@ -1,15 +1,26 @@
-import {Message} from "@/types";
 import ChatClient from "./ChatClient";
+import { Message } from "@/types";
 
-async function page({params}: {params: { chatId: string}}) {
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ chatId: string }>;
+  searchParams: Promise<{ first?: string }>;
+}) {
+  const { chatId } = await params;
+  const { first } = await searchParams;
 
-    const {chatId} = params;
-    
-    // const messages : Message[] = await getMessages(chatId);
-    const messages : Message[] = [];
+  const messages: Message[] = first
+    ? [
+        {
+          id: crypto.randomUUID(),
+          role: "user",
+          content: first,
+          createdAt: new Date(),
+        },
+      ]
+    : [];
 
-    return <ChatClient chatId={chatId} initialMessages={messages} />
-  
+  return <ChatClient chatId={chatId} initialMessages={messages} />;
 }
-
-export default page

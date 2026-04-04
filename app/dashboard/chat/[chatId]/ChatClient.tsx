@@ -1,42 +1,58 @@
 "use client";
-import { Message } from "@/types";
+
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import EmptyUi from "./EmptyUi";
 import ChatUi from "./ChatUi";
+import { Message } from "@/types";
+import EmptyUi from "./EmptyUi";
 
-interface Props {
-  chatId: string;
+export default function ChatClient({
+  chatId,
+  initialMessages,
+}: {
+  chatId: string | null;
   initialMessages: Message[];
-}
-
-export default function ChatClient({ chatId, initialMessages }: Props) {
-
+}) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
-  //   async function handleSend(text: string) {
-  //     const userMsg: Message = {
-  //       role: "user",
-  //       content: text,
-  //     };
+  function handleSend(text: string) {
+    // 🔥 FIRST MESSAGE
+    if (!chatId) {
+      const newChatId = crypto.randomUUID();
 
-  //     const isFirstMessage = messages.length === 0;
+      router.push(
+        `/dashboard/chat/${newChatId}?first=${encodeURIComponent(text)}`
+      );
+      return;
+    }
 
-  //     // UI update
-  //     setMessages((prev) => [...prev, userMsg]);
+    // 🔥 EXISTING CHAT
+    const userMsg: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: text,
+      createdAt: new Date(),
+    };
 
-  //     try {
-  //       if (isFirstMessage) {
-  //         await createChatIfNotExists(chatId);
-  //       }
+    setMessages((prev) => [...prev, userMsg]);
 
-  //       const aiReply = await sendMessage(chatId, text);
+    // fake assistant reply
+    setTimeout(() => {
+      const aiMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Fake AI response",
+        createdAt: new Date(),
+      };
 
-  //       setMessages((prev) => [...prev, aiReply]);
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   }
+      setMessages((prev) => [...prev, aiMsg]);
+    }, 500);
+  }
 
-  if (messages.length === 0) return <EmptyUi onSend={()=> console.log("send")} />;
-  return <ChatUi messages={messages} onSend={()=> console.log("send")} />;
+  if (messages.length === 0) {
+    return <EmptyUi onSend={handleSend} />;
+  }
+
+  return <ChatUi messages={messages} onSend={handleSend} />;
 }
