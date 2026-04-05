@@ -33,13 +33,7 @@ model DatabaseConnection {
   name      String
   dbType    DatabaseType
 
-  connectionString String?
-
-  host        String?
-  port        Int?
-  username    String?
-  password    String?
-  databaseName String?
+  connectionString String
 
   isActive  Boolean @default(false)
   createdAt DateTime @default(now())
