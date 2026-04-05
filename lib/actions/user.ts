@@ -1,6 +1,6 @@
 "use server";
 
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 import { prisma } from "../prisma";
 
@@ -33,4 +33,17 @@ export async function SyncUser(){
         console.log("Error syncing user:", error);
     }
 
+}
+
+export async function getUser(){
+    const { userId } = await auth();
+
+    const user = await prisma.user.findUnique({
+        where:{
+            clerkId: userId || ""
+        }
+        
+    })
+
+    return user;
 }

@@ -5,7 +5,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { SyncUser } from "@/lib/actions/user"
+import { getUser, SyncUser } from "@/lib/actions/user"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -15,10 +15,18 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+
     await SyncUser() // Ensure the clerk user is synced with your database before rendering the dashboard
+    const user = await  getUser();
+    const sidebarUser = {
+      name : user?.name || "User",
+      email: user?.email || undefined,
+      avatar: user?.image || undefined
+    }
+
     return (
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar user={sidebarUser} />
   
         <SidebarInset className="flex flex-col h-screen overflow-hidden">
           {/* HEADER */}

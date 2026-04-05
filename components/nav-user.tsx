@@ -28,8 +28,8 @@ export function NavUser({
 }: {
   user: {
     name: string
-    email: string
-    avatar: string
+    email: string| undefined
+    avatar: string| undefined
   }
 }) {
   const { isMobile } = useSidebar()

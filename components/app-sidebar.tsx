@@ -14,11 +14,6 @@ import { Database, MapIcon, Plus, Settings } from "lucide-react"
 
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navbar: [
     {
       name: "New Chat",
@@ -55,7 +50,15 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type appSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  user: {
+    name: string;
+    email: string | undefined;
+    avatar: string | undefined;
+  }
+}
+
+export function AppSidebar({user, ...props }: appSidebarProps ) {
   
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -64,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.navbar} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
