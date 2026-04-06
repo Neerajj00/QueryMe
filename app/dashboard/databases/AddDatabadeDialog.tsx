@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-// import { createDatabase } from "@/lib/actions/database"
+import { addDatabase } from '@/lib/actions/database';
 
 export function AddDatabaseDialog() {
   return (
@@ -38,10 +37,10 @@ export function AddDatabaseDialog() {
           <DialogTitle>Add Database</DialogTitle>
         </DialogHeader>
 
-        <form className="space-y-4">
+        <form action={addDatabase} className="space-y-4">
           {/* Name */}
           <Label>Connection Name</Label>
-<Input name="name" placeholder="My Production DB" />
+          <Input name="name" placeholder="My Production DB" />
 
           {/* DB Type */}
           <Select name="dbType" required>
@@ -64,7 +63,7 @@ export function AddDatabaseDialog() {
             {/* URL TAB */}
             <TabsContent value="url">
               <div className="space-y-2">
-                <Label >Connection URL</Label>
+                <Label>Connection URL</Label>
                 <Input
                   name="connectionUrl"
                   placeholder="postgresql://user:password@localhost:5432/mydb"
@@ -84,17 +83,17 @@ export function AddDatabaseDialog() {
                 </div>
 
                 <div className="space-y-1">
-                <Label>Port</Label>
+                  <Label>Port</Label>
                   <Input name="port" placeholder="5432" />
                 </div>
 
                 <div className="space-y-1">
-                <Label>Username</Label>
+                  <Label>Username</Label>
                   <Input name="username" placeholder="postgres" />
                 </div>
 
                 <div className="space-y-1">
-                <Label>Password</Label>
+                  <Label>Password</Label>
                   <Input
                     name="password"
                     type="password"
@@ -103,12 +102,12 @@ export function AddDatabaseDialog() {
                 </div>
 
                 <div className="space-y-1">
-                <Label>Database Name</Label>
+                  <Label>Database Name</Label>
                   <Input name="database" placeholder="my_database" />
                 </div>
 
                 <label className="flex items-center gap-2 text-xs mt-2">
-                <Checkbox />
+                  <Checkbox />
                   Use SSL (recommended for cloud databases)
                 </label>
               </div>
