@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "QueryMe – AI-Powered SQL Query Platform",
@@ -34,7 +35,9 @@ export default function RootLayout({
         lang="en"
         className={`dark ${GeistSans.className} ${GeistMono.className}`}
       >
-        <body>{children}</body>
+        <body>{children}
+        <Toaster />
+        </body>
       </html>
     </ClerkProvider>
   )

@@ -1,84 +1,180 @@
 "use server";
-import {Client} from "pg";
+
+import { Client } from "pg";
 import mysql from "mysql2/promise";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "../prisma";
-
 import { DatabaseType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import crypto from "crypto";
+
+/* -------------------- 🔐 Encryption Utils -------------------- */
 
 
-export async function addDatabase(formData: FormData){
-    const { userId:clerkId } = await auth();
-    if(!clerkId)throw new Error("Unauthorized");
+const SECRET_KEY = process.env.DB_SECRET_KEY || "dev-secret-key";
 
-    const dbUser = await prisma.user.findUnique({
-        where:{
-            clerkId: clerkId
-        },
-        select:{
-            id: true
-        }
-    })
-    if(!dbUser) throw new Error("Unauthorized");
+/* ✅ ALWAYS 32 bytes */
+function getKey() {
+  return crypto.createHash("sha256").update(SECRET_KEY).digest();
+}
+function encrypt(text: string) {
+    const iv = crypto.randomBytes(16);
+  
+    const cipher = crypto.createCipheriv(
+      "aes-256-cbc",
+      getKey(), // ✅ fixed
+      iv
+    );
+  
+    let encrypted = cipher.update(text, "utf8");
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+  
+    return iv.toString("hex") + ":" + encrypted.toString("hex");
+  }
 
-    const name = formData.get("name") as string;
-    const dbType = formData.get("dbType") as DatabaseType;
+  function decrypt(text: string) {
+    const [ivHex, encryptedHex] = text.split(":");
+  
+    const iv = Buffer.from(ivHex, "hex");
+    const encryptedText = Buffer.from(encryptedHex, "hex");
+  
+    const decipher = crypto.createDecipheriv(
+      "aes-256-cbc",
+      getKey(), // ✅ fixed
+      iv
+    );
+  
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+  
+    return decrypted.toString("utf8");
+  }
 
-    let connectionString = formData.get("connectionUrl") as string;
-    if(!connectionString){
-        const host = formData.get("host") as string;
-        const port = formData.get("port") as string;
-        const user = formData.get("username") as string;
-        const password = formData.get("password") as string;
-        const db = formData.get("database") as string;
-        const ssl = formData.get("ssl");
+/* -------------------- 🧪 Test Connection -------------------- */
 
-        if(!host || !port || !user || !password) throw new Error("Missing required fields");
-
-        if(dbType === "POSTGRESQL"){
-            connectionString = `postgresql://${user}:${password}@${host}:${port}/${db}?sslmode=${ ssl ? "require" : "disable"}`
-            }
-
-        if (dbType === "MYSQL") {
-            connectionString = `mysql://${user}:${password}@${host}:${port}/${db}`
-            }
+export async function testConnection(
+  connectionString: string,
+  dbType: DatabaseType
+) {
+  try {
+    if (dbType === DatabaseType.POSTGRESQL) {
+      const client = new Client({ connectionString });
+      await client.connect();
+      await client.end();
+      return true;
     }
 
-    await prisma.databaseConnection.create({
-        data: {
-          userId: dbUser?.id,
-          name,
-          dbType,
-          connectionString,
-        },
-      })
-
-      revalidatePath("/dashboard/databases");
+    if (dbType === DatabaseType.MYSQL) {
+      const connection = await mysql.createConnection(connectionString);
+      await connection.end();
+      return true;
     }
 
-// Test database connection
-export async function testConnection(connectionString : string, dbType: string){
-    if(dbType === "postgres"){
-        const pgClient = new Client(connectionString);
-        try {
-            await pgClient.connect();
-            await pgClient.end();
-            return true;
-        } catch (err) {
-            console.error("Connection failed:", err);
-            return false;
-        }
+    return false;
+  } catch (err) {
+    console.error("Connection failed:", err);
+    return false;
+  }
+}
+
+/* -------------------- ➕ Add Database -------------------- */
+
+export async function addDatabase(formData: FormData) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) throw new Error("Unauthorized");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId },
+    select: { id: true },
+  });
+
+  if (!dbUser) throw new Error("Unauthorized");
+
+  /* ---------- 🧹 Validation ---------- */
+
+  const name = formData.get("name") as string;
+  const dbType = formData.get("dbType") as DatabaseType;
+
+  if (!name?.trim()) throw new Error("Database name required");
+  if (!dbType) throw new Error("Database type required");
+
+  let connectionString = formData.get("connectionUrl") as string;
+
+  if (!connectionString) {
+    const host = formData.get("host") as string;
+    const port = formData.get("port") as string;
+    const user = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    const db = formData.get("database") as string;
+    const ssl = formData.get("ssl");
+
+    if (!host || !port || !user || !password) {
+      throw new Error("Missing required fields");
     }
-    else if(dbType === "mysql"){
-        // Implement MySQL connection test
-        try{
-            const connection = await mysql.createConnection(connectionString);
-            await connection.end();
-            return true;
-        }catch(err){
-            console.error("Connection failed:", err);
-            return false;
-        }
+
+    if (dbType === DatabaseType.POSTGRESQL) {
+      connectionString = `postgresql://${user}:${password}@${host}:${port}/${db}?sslmode=${
+        ssl ? "require" : "disable"
+      }`;
     }
+
+    if (dbType === DatabaseType.MYSQL) {
+      connectionString = `mysql://${user}:${password}@${host}:${port}/${db}`;
+    }
+  }
+
+  /* ---------- 🧪 Test Connection BEFORE saving ---------- */
+
+  const isValid = await testConnection(connectionString, dbType);
+  if (!isValid) throw new Error("Invalid database connection");
+
+  /* ---------- 🔐 Encrypt before storing ---------- */
+
+  const encryptedConnectionString = encrypt(connectionString);
+
+  /* ---------- 💾 Save ---------- */
+
+  await prisma.databaseConnection.create({
+    data: {
+      userId: dbUser.id,
+      name,
+      dbType,
+      connectionString: encryptedConnectionString,
+    },
+  });
+
+  revalidatePath("/dashboard/databases");
+}
+
+/* -------------------- 📥 Get Databases -------------------- */
+
+export async function getDatabases() {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) throw new Error("Unauthorized");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId },
+    select: { id: true },
+  });
+
+  if (!dbUser) throw new Error("Unauthorized");
+
+  const databases = await prisma.databaseConnection.findMany({
+    where: { userId: dbUser.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return databases;
+}
+
+/* -------------------- 🔓 Optional: Get Decrypted String -------------------- */
+
+export async function getDecryptedConnection(id: string) {
+  const db = await prisma.databaseConnection.findUnique({
+    where: { id },
+  });
+
+  if (!db) throw new Error("Database not found");
+
+  return decrypt(db.connectionString);
 }

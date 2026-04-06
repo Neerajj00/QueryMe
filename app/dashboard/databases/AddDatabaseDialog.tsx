@@ -22,12 +22,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { addDatabase } from "@/lib/actions/database";
+import { toast } from "sonner";
 
 export function AddDatabaseDialog() {
-  const [dbType, setDbType] = React.useState("")
+  const [open, setOpen] = React.useState(false);
+  const [dbType, setDbType] = React.useState("");
+  const [pending, startTransition] = React.useTransition();
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
@@ -40,8 +43,22 @@ export function AddDatabaseDialog() {
           <DialogTitle>Add Database</DialogTitle>
         </DialogHeader>
 
-        <form action={addDatabase} className="space-y-4">
-          
+        <form
+          action={(formData) => {
+            startTransition(async () => {
+              try {
+                await addDatabase(formData);
+
+                toast.success("Database connected successfully 🚀");
+
+                setOpen(false);
+              } catch (err: any) {
+                toast.error(err.message || "Something went wrong");
+              }
+            });
+          }}
+          className="space-y-4"
+        >
           {/* Connection Name */}
           <div className="space-y-1">
             <Label htmlFor="name">Connection Name</Label>
@@ -57,11 +74,11 @@ export function AddDatabaseDialog() {
           <div className="space-y-1">
             <Label>Database Type</Label>
 
-            {/* Hidden input (IMPORTANT) */}
+            {/* hidden input for form */}
             <input type="hidden" name="dbType" value={dbType} />
 
             <Select onValueChange={setDbType}>
-              <SelectTrigger className="bg-white/10 border-white/20">
+              <SelectTrigger>
                 <SelectValue placeholder="Select Database Type" />
               </SelectTrigger>
               <SelectContent>
@@ -93,7 +110,6 @@ export function AddDatabaseDialog() {
             {/* MANUAL */}
             <TabsContent value="manual">
               <div className="space-y-3">
-                
                 <div className="space-y-1">
                   <Label htmlFor="host">Host</Label>
                   <Input id="host" name="host" placeholder="localhost" />
@@ -128,21 +144,23 @@ export function AddDatabaseDialog() {
                   />
                 </div>
 
-                {/* SSL */}
                 <div className="flex items-center gap-2 pt-1">
                   <Checkbox id="ssl" name="ssl" />
                   <Label htmlFor="ssl" className="text-xs cursor-pointer">
                     Use SSL
                   </Label>
                 </div>
-
               </div>
             </TabsContent>
           </Tabs>
 
           {/* Submit */}
-          <Button type="submit" className="w-full">
-            Connect Database
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={pending || !dbType}
+          >
+            {pending ? "Connecting..." : "Connect Database"}
           </Button>
         </form>
       </DialogContent>
