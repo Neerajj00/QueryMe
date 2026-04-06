@@ -1,3 +1,4 @@
+"use server";
 import {Client} from "pg";
 import mysql from "mysql2/promise";
 import { auth } from "@clerk/nextjs/server";
@@ -8,8 +9,18 @@ import { revalidatePath } from "next/cache";
 
 
 export async function addDatabase(formData: FormData){
-    const { userId } = await auth();
-    if(!userId)throw new Error("Unauthorized");
+    const { userId:clerkId } = await auth();
+    if(!clerkId)throw new Error("Unauthorized");
+
+    const dbUser = await prisma.user.findUnique({
+        where:{
+            clerkId: clerkId
+        },
+        select:{
+            id: true
+        }
+    })
+    if(!dbUser) throw new Error("Unauthorized");
 
     const name = formData.get("name") as string;
     const dbType = formData.get("dbType") as DatabaseType;
@@ -36,7 +47,7 @@ export async function addDatabase(formData: FormData){
 
     await prisma.databaseConnection.create({
         data: {
-          userId,
+          userId: dbUser?.id,
           name,
           dbType,
           connectionString,

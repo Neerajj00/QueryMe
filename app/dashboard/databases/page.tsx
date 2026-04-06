@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { Plus } from "lucide-react";
 import { DatabaseCard } from "./DatabaseCard";
-import { AddDatabaseDialog } from './AddDatabadeDialog';
+import { AddDatabaseDialog } from './AddDatabaseDialog';
 
 function page() {
   return (
