@@ -169,12 +169,133 @@ export async function getDatabases() {
 
 /* -------------------- 🔓 Optional: Get Decrypted String -------------------- */
 
-export async function getDecryptedConnection(id: string) {
-  const db = await prisma.databaseConnection.findUnique({
-    where: { id },
+export async function getDatabaseWithConnection(id: string) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) throw new Error("Unauthorized");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId },
+    select: { id: true },
+  });
+
+  const db = await prisma.databaseConnection.findFirst({
+    where: {
+      id,
+      userId: dbUser?.id, // 🔒 important security check
+    },
   });
 
   if (!db) throw new Error("Database not found");
 
-  return decrypt(db.connectionString);
+  return {
+    ...db,
+    connectionUrl: decrypt(db.connectionString), // 👈 add this
+  };
+}
+
+
+export async function updateDatabase(id: string, formData: FormData) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) throw new Error("Unauthorized");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId },
+    select: { id: true },
+  });
+
+  if (!dbUser) throw new Error("Unauthorized");
+
+  /* ---------- 🧹 Validation ---------- */
+
+  const name = formData.get("name") as string;
+  const dbType = formData.get("dbType") as DatabaseType;
+
+  if (!name?.trim()) throw new Error("Database name required");
+  if (!dbType) throw new Error("Database type required");
+
+  let connectionString = formData.get("connectionUrl") as string;
+
+  if (!connectionString) {
+    const host = formData.get("host") as string;
+    const port = formData.get("port") as string;
+    const user = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    const db = formData.get("database") as string;
+    const ssl = formData.get("ssl");
+
+    if (!host || !port || !user) {
+      throw new Error("Missing required fields");
+    }
+
+    // ⚠️ IMPORTANT: allow empty password in edit
+    if (dbType === DatabaseType.POSTGRESQL) {
+      connectionString = `postgresql://${user}:${password || ""}@${host}:${port}/${db}?sslmode=${
+        ssl ? "require" : "disable"
+      }`;
+    }
+
+    if (dbType === DatabaseType.MYSQL) {
+      connectionString = `mysql://${user}:${password || ""}@${host}:${port}/${db}`;
+    }
+  }
+
+  /* ---------- 🧪 Test connection ---------- */
+
+  const isValid = await testConnection(connectionString, dbType);
+  if (!isValid) throw new Error("Invalid database connection");
+
+  /* ---------- 🔐 Encrypt ---------- */
+
+  const encryptedConnectionString = encrypt(connectionString);
+
+  /* ---------- 🔒 Ownership check (IMPORTANT) ---------- */
+
+  const existing = await prisma.databaseConnection.findUnique({
+    where: { id },
+  });
+
+  if (!existing || existing.userId !== dbUser.id) {
+    throw new Error("Unauthorized");
+  }
+
+  /* ---------- 💾 Update ---------- */
+
+  await prisma.databaseConnection.update({
+    where: { id },
+    data: {
+      name,
+      dbType,
+      connectionString: encryptedConnectionString,
+    },
+  });
+
+  revalidatePath("/dashboard/databases");
+}
+
+
+export async function deleteDatabase(id: string) {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) throw new Error("Unauthorized");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId },
+    select: { id: true },
+  });
+
+  if (!dbUser) throw new Error("Unauthorized");
+
+  const existing = await prisma.databaseConnection.findFirst({
+    where: {
+      id,
+      userId: dbUser.id,
+    },
+  });
+
+  if (!existing) throw new Error("Database not found");
+
+  await prisma.databaseConnection.delete({
+    where: { id },
+  });
+
+  revalidatePath("/dashboard/databases");
 }

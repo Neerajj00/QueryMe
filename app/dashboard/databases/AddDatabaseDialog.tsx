@@ -7,11 +7,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,35 +19,45 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { addDatabase } from "@/lib/actions/database";
+import { addDatabase, updateDatabase } from "@/lib/actions/database";
 import { toast } from "sonner";
 
-export function AddDatabaseDialog() {
-  const [open, setOpen] = React.useState(false);
-  const [dbType, setDbType] = React.useState("");
+interface Props {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  initialData?: any;
+}
+
+export function DatabaseFormDialog({ open, setOpen, initialData }: Props) {
+  const isEdit = !!initialData;
+
+  const [dbType, setDbType] = React.useState(initialData?.dbType || "");
   const [pending, startTransition] = React.useTransition();
+
+  React.useEffect(() => {
+    setDbType(initialData?.dbType || "");
+  }, [initialData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          <span className="hidden sm:block">Add Database</span>
-        </Button>
-      </DialogTrigger>
-
       <DialogContent className="sm:max-w-lg space-y-4">
         <DialogHeader>
-          <DialogTitle>Add Database</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Database" : "Add Database"}
+          </DialogTitle>
         </DialogHeader>
 
         <form
           action={(formData) => {
             startTransition(async () => {
               try {
-                await addDatabase(formData);
-
-                toast.success("Database connected successfully 🚀");
+                if (isEdit) {
+                  await updateDatabase(initialData.id, formData);
+                  toast.success("Database updated");
+                } else {
+                  await addDatabase(formData);
+                  toast.success("Database added");
+                }
 
                 setOpen(false);
               } catch (err: any) {
@@ -59,13 +67,12 @@ export function AddDatabaseDialog() {
           }}
           className="space-y-4"
         >
-          {/* Connection Name */}
+          {/* Name */}
           <div className="space-y-1">
-            <Label htmlFor="name">Connection Name</Label>
+            <Label>Connection Name</Label>
             <Input
-              id="name"
               name="name"
-              placeholder="My Production DB"
+              defaultValue={initialData?.name}
               required
             />
           </div>
@@ -74,10 +81,9 @@ export function AddDatabaseDialog() {
           <div className="space-y-1">
             <Label>Database Type</Label>
 
-            {/* hidden input for form */}
             <input type="hidden" name="dbType" value={dbType} />
 
-            <Select onValueChange={setDbType}>
+            <Select value={dbType} onValueChange={setDbType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select Database Type" />
               </SelectTrigger>
@@ -98,57 +104,49 @@ export function AddDatabaseDialog() {
             {/* URL */}
             <TabsContent value="url">
               <div className="space-y-1">
-                <Label htmlFor="connectionUrl">Connection URL</Label>
+                <Label>Connection URL</Label>
                 <Input
-                  id="connectionUrl"
                   name="connectionUrl"
-                  placeholder="postgresql://user:password@localhost:5432/mydb"
+                  defaultValue={initialData?.connectionUrl}
                 />
               </div>
             </TabsContent>
 
-            {/* MANUAL */}
+            {/* Manual */}
             <TabsContent value="manual">
               <div className="space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="host">Host</Label>
-                  <Input id="host" name="host" placeholder="localhost" />
-                </div>
+                <Input
+                  name="host"
+                  placeholder="Host"
+                  defaultValue={initialData?.host}
+                />
+                <Input
+                  name="port"
+                  placeholder="Port"
+                  defaultValue={initialData?.port}
+                />
+                <Input
+                  name="username"
+                  placeholder="Username"
+                  defaultValue={initialData?.username}
+                />
+                <Input
+                  name="password"
+                  placeholder="Password"
+                  type="password"
+                />
+                <Input
+                  name="database"
+                  placeholder="Database"
+                  defaultValue={initialData?.database}
+                />
 
-                <div className="space-y-1">
-                  <Label htmlFor="port">Port</Label>
-                  <Input id="port" name="port" placeholder="5432" />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="username">Username</Label>
-                  <Input id="username" name="username" placeholder="postgres" />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    name="ssl"
+                    defaultChecked={initialData?.ssl}
                   />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="database">Database Name</Label>
-                  <Input
-                    id="database"
-                    name="database"
-                    placeholder="my_database"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <Checkbox id="ssl" name="ssl" />
-                  <Label htmlFor="ssl" className="text-xs cursor-pointer">
-                    Use SSL
-                  </Label>
+                  <Label className="text-xs">Use SSL</Label>
                 </div>
               </div>
             </TabsContent>
@@ -160,7 +158,13 @@ export function AddDatabaseDialog() {
             className="w-full"
             disabled={pending || !dbType}
           >
-            {pending ? "Connecting..." : "Connect Database"}
+            {pending
+              ? isEdit
+                ? "Updating..."
+                : "Connecting..."
+              : isEdit
+              ? "Update Database"
+              : "Connect Database"}
           </Button>
         </form>
       </DialogContent>
