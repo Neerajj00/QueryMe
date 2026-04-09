@@ -19,45 +19,31 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { addDatabase, updateDatabase } from "@/lib/actions/database";
+import { addDatabase } from "@/lib/actions/database";
 import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   setOpen: (open: boolean) => void;
-  initialData?: any;
 }
 
-export function DatabaseFormDialog({ open, setOpen, initialData }: Props) {
-  const isEdit = !!initialData;
-
-  const [dbType, setDbType] = React.useState(initialData?.dbType || "");
+export function DatabaseFormDialog({ open, setOpen }: Props) {
+  const [dbType, setDbType] = React.useState("POSTGRESQL");
   const [pending, startTransition] = React.useTransition();
-
-  React.useEffect(() => {
-    setDbType(initialData?.dbType || "");
-  }, [initialData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-lg space-y-4">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit Database" : "Add Database"}
-          </DialogTitle>
+          <DialogTitle>Add Database</DialogTitle>
         </DialogHeader>
 
         <form
           action={(formData) => {
             startTransition(async () => {
               try {
-                if (isEdit) {
-                  await updateDatabase(initialData.id, formData);
-                  toast.success("Database updated");
-                } else {
-                  await addDatabase(formData);
-                  toast.success("Database added");
-                }
+                await addDatabase(formData);
+                toast.success("Database added");
 
                 setOpen(false);
               } catch (err: any) {
@@ -70,11 +56,7 @@ export function DatabaseFormDialog({ open, setOpen, initialData }: Props) {
           {/* Name */}
           <div className="space-y-1">
             <Label>Connection Name</Label>
-            <Input
-              name="name"
-              defaultValue={initialData?.name}
-              required
-            />
+            <Input name="name" required />
           </div>
 
           {/* DB Type */}
@@ -105,47 +87,21 @@ export function DatabaseFormDialog({ open, setOpen, initialData }: Props) {
             <TabsContent value="url">
               <div className="space-y-1">
                 <Label>Connection URL</Label>
-                <Input
-                  name="connectionUrl"
-                  defaultValue={initialData?.connectionUrl}
-                />
+                <Input name="connectionUrl" />
               </div>
             </TabsContent>
 
             {/* Manual */}
             <TabsContent value="manual">
               <div className="space-y-3">
-                <Input
-                  name="host"
-                  placeholder="Host"
-                  defaultValue={initialData?.host}
-                />
-                <Input
-                  name="port"
-                  placeholder="Port"
-                  defaultValue={initialData?.port}
-                />
-                <Input
-                  name="username"
-                  placeholder="Username"
-                  defaultValue={initialData?.username}
-                />
-                <Input
-                  name="password"
-                  placeholder="Password"
-                  type="password"
-                />
-                <Input
-                  name="database"
-                  placeholder="Database"
-                  defaultValue={initialData?.database}
-                />
+                <Input name="host" placeholder="Host" />
+                <Input name="port" placeholder="Port" />
+                <Input name="username" placeholder="Username" />
+                <Input name="password" placeholder="Password" type="password" />
+                <Input name="database" placeholder="Database" />
 
                 <div className="flex items-center gap-2">
-                  <Checkbox
-                    name="ssl"
-                    defaultChecked={initialData?.ssl}
-                  />
+                  <Checkbox name="ssl" />
                   <Label className="text-xs">Use SSL</Label>
                 </div>
               </div>
@@ -158,13 +114,7 @@ export function DatabaseFormDialog({ open, setOpen, initialData }: Props) {
             className="w-full"
             disabled={pending || !dbType}
           >
-            {pending
-              ? isEdit
-                ? "Updating..."
-                : "Connecting..."
-              : isEdit
-              ? "Update Database"
-              : "Connect Database"}
+            {pending ? "Connecting..." : "Connect Database"}
           </Button>
         </form>
       </DialogContent>

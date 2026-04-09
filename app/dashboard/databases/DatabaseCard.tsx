@@ -4,8 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Database,
-  MessageSquare,
-  Pencil,
   Trash2,
   Loader2,
 } from "lucide-react";
@@ -18,7 +16,6 @@ interface Props {
   name: string;
   type: string;
   createdAt: string;
-  onEdit: () => void;
 }
 
 export function DatabaseCard({
@@ -26,7 +23,6 @@ export function DatabaseCard({
   name,
   type,
   createdAt,
-  onEdit,
 }: Props) {
   const [deleting, setDeleting] = React.useState(false);
 
@@ -49,7 +45,7 @@ export function DatabaseCard({
 
   return (
     <Card className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-white/20 backdrop-blur-xl rounded-2xl transition-all duration-300 group">
-      <CardContent className="flex flex-col gap-4 p-5">
+      <CardContent className="flex flex-col gap-4 ">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -72,15 +68,6 @@ export function DatabaseCard({
           </p>
 
           <div className="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onEdit}
-              className="text-white/60 hover:text-white hover:bg-white/10"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-
             <Button
               size="icon"
               variant="ghost"

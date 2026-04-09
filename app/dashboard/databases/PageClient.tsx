@@ -5,19 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { DatabaseCard } from "./DatabaseCard";
 import { DatabaseFormDialog } from "./AddDatabaseDialog";
-import { getDatabaseWithConnection } from "@/lib/actions/database";
 
 export default function PageClient({ databases }: any) {
   const [open, setOpen] = React.useState(false);
-  const [editingDb, setEditingDb] = React.useState<any>(null);
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div className="w-full h-16 flex justify-end">
+      <div className="w-full flex justify-end">
         <Button
           onClick={() => {
-            setEditingDb(null); // ADD mode
             setOpen(true);
           }}
         >
@@ -27,8 +24,16 @@ export default function PageClient({ databases }: any) {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto mt-2">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex-1 overflow-y-auto mt-2 ">
+  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 ">
+          {databases.length === 0 && (
+            <div className="col-span-full h-full flex w-full  justify-center items-center text-center text-muted-foreground">
+              <p>
+                No databases added yet. Click &quot;Add Database&quot; to get
+                started.
+              </p>
+            </div>
+          )}
           {databases.map((db: any) => (
             <DatabaseCard
               key={db.id}
@@ -36,11 +41,6 @@ export default function PageClient({ databases }: any) {
               name={db.name}
               type={db.dbType}
               createdAt={db.createdAt.toISOString().split("T")[0]}
-              onEdit={async () => {
-                const fullDb = await getDatabaseWithConnection(db.id);
-                setEditingDb(fullDb);
-                setOpen(true);
-              }}
             />
           ))}
         </div>
@@ -50,7 +50,6 @@ export default function PageClient({ databases }: any) {
       <DatabaseFormDialog
         open={open}
         setOpen={setOpen}
-        initialData={editingDb}
       />
     </div>
   );
