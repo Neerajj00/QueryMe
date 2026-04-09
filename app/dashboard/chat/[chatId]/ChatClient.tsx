@@ -9,9 +9,11 @@ import EmptyUi from "./EmptyUi";
 export default function ChatClient({
   chatId,
   initialMessages,
+  username
 }: {
   chatId: string | null;
   initialMessages: Message[];
+  username: string;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -51,7 +53,7 @@ export default function ChatClient({
   }
 
   if (messages.length === 0) {
-    return <EmptyUi onSend={handleSend} />;
+    return <EmptyUi onSend={handleSend} username = {username} />;
   }
 
   return <ChatUi messages={messages} onSend={handleSend} />;

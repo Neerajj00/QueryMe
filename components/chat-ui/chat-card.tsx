@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { SnowflakeIcon } from "@/components/icons/snowflake-icon";
 import { ChatInput } from "./chat-input";
 import { InputControls } from "./input-controls";
 import { SuggestionBadges } from "./suggestion-badges";
@@ -20,9 +19,7 @@ interface ChatCardProps {
 }
 
 export function ChatCard({
-  userName = "Juan",
-  onBackgroundChange,
-  onResetBackground,
+  userName,
 }: ChatCardProps) {
   const [inputValue, setInputValue] = useState("");
 

@@ -1,5 +1,6 @@
 import ChatClient from "./ChatClient";
 import { Message } from "@/types";
+import { getUser } from "@/lib/actions/user";
 
 export default async function Page({
   params,
@@ -11,16 +12,25 @@ export default async function Page({
   const { chatId } = await params;
   const { first } = await searchParams;
 
+  const user = await getUser();
+
   const messages: Message[] = first
-    ? [
-        {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: first,
-          createdAt: new Date(),
-        },
-      ]
+    ? [{
+        id: crypto.randomUUID(),
+        role: "user",
+        content: first,
+        createdAt: new Date(),
+      }]
     : [];
 
-  return <ChatClient chatId={chatId} initialMessages={messages} />;
+  return (
+    <ChatClient
+      chatId={chatId}
+      initialMessages={messages}
+      username={user?.name || "User"}
+    />
+  );
+
+  
 }
+
