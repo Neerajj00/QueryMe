@@ -25,7 +25,7 @@ export default function PageClient({ databases }: any) {
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto mt-2 ">
-  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 ">
+  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
           {databases.length === 0 && (
             <div className="col-span-full h-full flex w-full  justify-center items-center text-center text-muted-foreground">
               <p>

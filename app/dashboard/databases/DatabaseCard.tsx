@@ -10,6 +10,7 @@ import {
 import React from "react";
 import {  deleteDatabase } from "@/lib/actions/database";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/UseConfirmDialog";
 
 interface Props {
   id: string;
@@ -27,10 +28,17 @@ export function DatabaseCard({
   const [deleting, setDeleting] = React.useState(false);
 
   
-
+  
+  const confirm = useConfirmDialog();
   async function handleDelete() {
-    if (!confirm("Delete this database?")) return;
-
+    const ok = await confirm({
+      title: "Are you sure you want to delete this database?",
+      description: "This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      type: "danger"
+    })
+    if(!ok) return;
     setDeleting(true);
 
     try {

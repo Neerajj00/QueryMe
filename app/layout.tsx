@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Toaster } from "sonner";
+import { ConfirmDialogProvider } from './../hooks/UseConfirmDialog';
 
 export const metadata: Metadata = {
   title: "QueryMe – AI-Powered SQL Query Platform",
@@ -31,14 +32,17 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
+      <ConfirmDialogProvider>
+
       <html
         lang="en"
         className={`dark ${GeistSans.className} ${GeistMono.className}`}
-      >
+        >
         <body>{children}
         <Toaster />
         </body>
       </html>
+        </ConfirmDialogProvider>
     </ClerkProvider>
   )
 }
