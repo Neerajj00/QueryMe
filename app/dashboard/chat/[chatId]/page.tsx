@@ -1,27 +1,18 @@
-import ChatClient from "./ChatClient";
-import { Message } from "@/types";
 import { getUser } from "@/lib/actions/user";
+import { Message } from "@/types";
+import ChatClient from "./ChatClient";
 
 export default async function Page({
   params,
-  searchParams,
 }: {
-  params: Promise<{ chatId: string }>;
-  searchParams: Promise<{ first?: string }>;
+  params: { chatId: string };
 }) {
-  const { chatId } = await params;
-  const { first } = await searchParams;
+  const { chatId } = params;
 
   const user = await getUser();
 
-  const messages: Message[] = first
-    ? [{
-        id: crypto.randomUUID(),
-        role: "user",
-        content: first,
-        createdAt: new Date(),
-      }]
-    : [];
+  // 🔥 FUTURE: fetch messages using chatId
+  const messages: Message[] = [];
 
   return (
     <ChatClient
@@ -30,7 +21,4 @@ export default async function Page({
       username={user?.name || "User"}
     />
   );
-
-  
 }
-

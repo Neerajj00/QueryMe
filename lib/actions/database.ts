@@ -8,8 +8,6 @@ import { DatabaseType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 
-/* -------------------- 🔐 Encryption Utils -------------------- */
-
 
 const SECRET_KEY = process.env.DB_SECRET_KEY || "dev-secret-key";
 
@@ -50,7 +48,6 @@ function encrypt(text: string) {
     return decrypted.toString("utf8");
   }
 
-/* -------------------- 🧪 Test Connection -------------------- */
 
 export async function testConnection(
   connectionString: string,
@@ -77,7 +74,6 @@ export async function testConnection(
   }
 }
 
-/* -------------------- ➕ Add Database -------------------- */
 
 export async function addDatabase(formData: FormData) {
   const { userId: clerkId } = await auth();
@@ -146,7 +142,6 @@ export async function addDatabase(formData: FormData) {
   revalidatePath("/dashboard/databases");
 }
 
-/* -------------------- 📥 Get Databases -------------------- */
 
 export async function getDatabases() {
   const { userId: clerkId } = await auth();
@@ -161,13 +156,18 @@ export async function getDatabases() {
 
   const databases = await prisma.databaseConnection.findMany({
     where: { userId: dbUser.id },
+    select:{
+      id: true,
+      name: true,
+      dbType: true,
+      createdAt: true,
+    },
     orderBy: { createdAt: "desc" },
   });
 
   return databases;
 }
 
-/* -------------------- 🔓 Optional: Get Decrypted String -------------------- */
 
 export async function getDatabaseWithConnection(id: string) {
   const { userId: clerkId } = await auth();

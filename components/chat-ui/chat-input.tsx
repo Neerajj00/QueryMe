@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
 interface ChatInputProps {
-  placeholder?: string
-  value?: string
-  onChange?: (value: string) => void
-  onSubmit?: (value: string) => void
+  placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  onSubmit?: (value: string) => void;
+  disabled?: boolean; // ✅ NEW
 }
 
 export function ChatInput({
@@ -14,26 +15,34 @@ export function ChatInput({
   value: externalValue,
   onChange: externalOnChange,
   onSubmit,
+  disabled = false,
 }: ChatInputProps) {
-  const value = externalValue ?? ""
+  const value = externalValue ?? "";
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (value.trim() && onSubmit) {
-      onSubmit(value)
-      externalOnChange?.("")
-    }
-  }
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (disabled) return; // ✅ block submit
+    if (!value.trim()) return;
+
+    onSubmit?.(value);
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleFormSubmit} className="w-full">
       <input
         type="text"
         value={value}
+        disabled={disabled}
         onChange={(e) => externalOnChange?.(e.target.value)}
         placeholder={placeholder}
-        className="w-full border-0 bg-white/10 px-4 py-3 text-white placeholder:text-white/50 backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-white/30 rounded-full"
+        className={`w-full px-4 py-3 rounded-full backdrop-blur-sm outline-none
+          ${
+            disabled
+              ? "bg-white/5 text-white/40 cursor-not-allowed"
+              : "bg-white/10 text-white focus:ring-1 focus:ring-white/30"
+          }`}
       />
     </form>
-  )
+  );
 }

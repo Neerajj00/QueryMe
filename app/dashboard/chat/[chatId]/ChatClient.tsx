@@ -1,60 +1,53 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import ChatUi from "./ChatUi";
 import { Message } from "@/types";
 import EmptyUi from "./EmptyUi";
+import ChatUi from "./ChatUi";
+
+type Database = {
+  id: string;
+  name: string;
+  dbType: string;
+};
 
 export default function ChatClient({
   chatId,
   initialMessages,
-  username
+  username,
+  databases,
 }: {
   chatId: string | null;
   initialMessages: Message[];
   username: string;
+  databases?: Database[];
 }) {
-  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
-  function handleSend(text: string) {
-    // 🔥 FIRST MESSAGE
-    if (!chatId) {
-      const newChatId = crypto.randomUUID();
-
-      router.push(
-        `/dashboard/chat/${newChatId}?first=${encodeURIComponent(text)}`
-      );
-      return;
-    }
-
-    // 🔥 EXISTING CHAT
+  function handleSend(text: string, dbId: string) {
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
       createdAt: new Date(),
     };
-
+  
+    console.log("Query DB:", dbId); // 👈 now you know
+  
     setMessages((prev) => [...prev, userMsg]);
-
-    // fake assistant reply
-    setTimeout(() => {
-      const aiMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "Fake AI response",
-        createdAt: new Date(),
-      };
-
-      setMessages((prev) => [...prev, aiMsg]);
-    }, 500);
+  }
+  
+  // 🟢 NEW CHAT
+  if (!chatId) {
+    return (
+      <EmptyUi
+        username={username}
+        onSend={handleSend}
+        databases={databases || []}
+      />
+    );
   }
 
-  if (messages.length === 0) {
-    return <EmptyUi onSend={handleSend} username = {username} />;
-  }
-
+  // 🔵 EXISTING CHAT
   return <ChatUi messages={messages} onSend={handleSend} />;
 }

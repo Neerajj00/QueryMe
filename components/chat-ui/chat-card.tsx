@@ -14,52 +14,87 @@ import {
 
 interface ChatCardProps {
   userName?: string;
-  onBackgroundChange?: (imageUrl: string) => void;
-  onResetBackground?: () => void;
+  databases: any[];
+  onSend: (text: string, dbId: string) => void; // ✅ UPDATED
 }
 
 export function ChatCard({
   userName,
+  databases,
+  onSend,
 }: ChatCardProps) {
   const [inputValue, setInputValue] = useState("");
+  const [selectedDb, setSelectedDb] = useState<string | null>(null);
+
+  const handleSendMessage = (value: string) => {
+    if (!value.trim() || !selectedDb) return;
+
+    onSend(value, selectedDb); // ✅ send dbId also
+    setInputValue("");
+  };
 
   const handleSuggestionSelect = (suggestion: {
     id: string;
     label: string;
   }) => {
+    if (!selectedDb) return; // ❌ block suggestions too
     setInputValue(suggestion.label);
   };
 
   return (
     <div className="w-full max-w-xl rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md">
       <div className="flex flex-col gap-6 items-center">
-        {/* Header with logo and greeting */}
+
+        {/* Header */}
         <div className="flex justify-between w-full">
           <div className="flex items-center gap-2">
             <p>&gt;_</p>
             <p className="text-sm text-white/80">Hello {userName}!</p>
           </div>
-          <div>
-            <Select>
-              <SelectTrigger className="w-35 h-2 text-xs bg-white/10 border-white/20">
-                <SelectValue placeholder="Select DB" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="db1">Database 1</SelectItem>
-                <SelectItem value="db2">Database 2</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+
+          {/* DB Select */}
+          <Select onValueChange={(value) => setSelectedDb(value)}>
+            <SelectTrigger className="w-40 h-8 text-xs bg-white/10 border-white/20">
+              <SelectValue placeholder="Select DB" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {databases.length > 0 ? (
+                databases.map((db) => (
+                  <SelectItem key={db.id} value={db.id}>
+                    {db.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="none" disabled>
+                  No databases
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Input section */}
+        {/* Input */}
         <div className="flex w-full flex-col gap-1">
           <ChatInput
-            placeholder="Ask me anything..."
             value={inputValue}
             onChange={setInputValue}
+            onSubmit={handleSendMessage}
+            disabled={!selectedDb} // ✅ KEY
+            placeholder={
+              selectedDb
+                ? "Ask me anything..."
+                : "Select a database first..."
+            }
           />
           <InputControls />
+
+          {/* Hint */}
+          {!selectedDb && (
+            <p className="text-xs ml-4 text-white/50">
+              Please select a database to start querying
+            </p>
+          )}
         </div>
 
         {/* Suggestions */}
@@ -73,7 +108,7 @@ export function ChatCard({
 }
 
 const DEFAULT_SUGGESTIONS = [
-  { id: "1", label: "Write an email" },
-  { id: "2", label: "Summarize a document" },
-  { id: "3", label: "Generate code" },
+  { id: "1", label: "Show all tables in the database" },
+  { id: "2", label: "Count total number of records" },
+  { id: "3", label: "Get first 10 records from a table" },
 ];
