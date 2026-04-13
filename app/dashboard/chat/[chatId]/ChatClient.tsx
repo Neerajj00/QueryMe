@@ -4,6 +4,8 @@ import { useState } from "react";
 import ChatUi from "./ChatUi";
 import EmptyUi from "./EmptyUi";
 import { generateQuery, runQuery } from "@/lib/actions/query";
+import Router from "next/router";
+
 
 type Message = {
   id: string;
@@ -86,7 +88,7 @@ export default function ChatClient({
     );
   }
 
-  if (!chatId) {
+  if (messages.length === 0) {
     return (
       <EmptyUi
         username={username}
