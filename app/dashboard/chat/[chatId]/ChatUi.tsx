@@ -1,11 +1,16 @@
-import { useState } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function ChatUi({ messages, onSend, onRunQuery }: any) {
   const [copiedMap, setCopiedMap] = useState<Record<string, boolean>>({});
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
-  
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+useEffect(() => {
+  bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages]);
+
+
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
       {/* Messages */}
@@ -115,6 +120,8 @@ export default function ChatUi({ messages, onSend, onRunQuery }: any) {
             </div>
           );
         })}
+
+<div ref={bottomRef} />
       </div>
 
       {/* INPUT */}
