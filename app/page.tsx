@@ -4,6 +4,7 @@ import Hero from "@/components/home/hero";
 import Features from "@/components/features";
 import Header from "@/components/Header";
 
+
 export default async function Home() {
   const { userId } = await auth();
 

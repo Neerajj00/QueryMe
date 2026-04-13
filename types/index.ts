@@ -12,3 +12,18 @@ export interface Chat {
   title?: string;
   createdAt: Date;
 }
+
+export type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+
+  // AI generated SQL
+  generatedSQL?: string;
+
+  // query result
+  result?: Record<string, any>[];
+
+  // loading states
+  isLoading?: boolean;
+};

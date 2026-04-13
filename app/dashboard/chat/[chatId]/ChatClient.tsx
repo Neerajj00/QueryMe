@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Message } from "@/types";
-import EmptyUi from "./EmptyUi";
 import ChatUi from "./ChatUi";
+import EmptyUi from "./EmptyUi";
+import { generateQuery, runQuery } from "@/lib/actions/query";
+
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  generatedSQL?: string;
+  result?: Record<string, unknown>[];
+};
 
 type Database = {
   id: string;
@@ -11,43 +19,88 @@ type Database = {
   dbType: string;
 };
 
+type ChatClientProps = {
+  chatId: string | null;
+  initialMessages: Message[];
+  username: string;
+  databases: Database[];
+};
+
 export default function ChatClient({
   chatId,
   initialMessages,
   username,
   databases,
-}: {
-  chatId: string | null;
-  initialMessages: Message[];
-  username: string;
-  databases?: Database[];
-}) {
+}: ChatClientProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
-  function handleSend(text: string, dbId: string) {
+  const dbId = databases?.[0]?.id;
+
+  async function handleSend(text: string) {
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
-      createdAt: new Date(),
     };
-  
-    console.log("Query DB:", dbId); // 👈 now you know
-  
+
     setMessages((prev) => [...prev, userMsg]);
+
+    const aiId = crypto.randomUUID();
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: aiId,
+        role: "assistant",
+        content: "Generating SQL...",
+      },
+    ]);
+
+    const res = await generateQuery(dbId, text);
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === aiId
+          ? {
+              ...m,
+              content: "Here is your SQL:",
+              generatedSQL: res.generatedSQL,
+            }
+          : m
+      )
+    );
   }
-  
-  // 🟢 NEW CHAT
+
+  async function handleRun(msgId: string, sql: string) {
+    const res = await runQuery(dbId, sql);
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === msgId
+          ? {
+              ...m,
+              result: "rows" in res ? res.rows : [],
+            }
+          : m
+      )
+    );
+  }
+
   if (!chatId) {
     return (
       <EmptyUi
         username={username}
         onSend={handleSend}
-        databases={databases || []}
+        databases={databases}
       />
     );
   }
 
-  // 🔵 EXISTING CHAT
-  return <ChatUi messages={messages} onSend={handleSend} />;
+  return (
+    <ChatUi
+      messages={messages}
+      onSend={handleSend}
+      onRunQuery={handleRun}
+    />
+  );
 }
