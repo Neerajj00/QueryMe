@@ -30,23 +30,23 @@ function encrypt(text: string) {
     return iv.toString("hex") + ":" + encrypted.toString("hex");
   }
 
-  function decrypt(text: string) {
-    const [ivHex, encryptedHex] = text.split(":");
-  
-    const iv = Buffer.from(ivHex, "hex");
-    const encryptedText = Buffer.from(encryptedHex, "hex");
-  
-    const decipher = crypto.createDecipheriv(
-      "aes-256-cbc",
-      getKey(), // ✅ fixed
-      iv
-    );
-  
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-  
-    return decrypted.toString("utf8");
-  }
+function decrypt(text: string) {
+  const [ivHex, encryptedHex] = text.split(":");
+
+  const iv = Buffer.from(ivHex, "hex");
+  const encryptedText = Buffer.from(encryptedHex, "hex");
+
+  const decipher = crypto.createDecipheriv(
+    "aes-256-cbc",
+    getKey(), // ✅ fixed
+    iv
+  );
+
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  return decrypted.toString("utf8");
+}
 
 
 export async function testConnection(

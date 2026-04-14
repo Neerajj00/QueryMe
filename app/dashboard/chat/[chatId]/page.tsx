@@ -1,6 +1,6 @@
 import { getUser } from "@/lib/actions/user";
-import { Message } from "@/types";
 import ChatClient from "./ChatClient";
+import { getMessagesByChatId } from "@/lib/actions/chat";
 
 export default async function Page({
   params,
@@ -11,8 +11,7 @@ export default async function Page({
 
   const user = await getUser();
 
-  // 🔥 FUTURE: fetch messages using chatId
-  const messages: Message[] = [];
+  const messages = await getMessagesByChatId(chatId);
 
   return (
     <ChatClient
