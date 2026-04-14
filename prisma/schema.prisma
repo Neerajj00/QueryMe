@@ -7,25 +7,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+///////////////////////
+// ENUMS
+///////////////////////
+
+enum DatabaseType {
+  POSTGRESQL
+  MYSQL
+}
+
+enum StatusType {
+  SUCCESS
+  ERROR
+}
+
+enum Role {
+  USER
+  ASSISTANT
+}
+
+///////////////////////
+// USER
+///////////////////////
+
 model User {
   id        String   @id @default(uuid())
   clerkId   String   @unique
   name      String?
   image     String?
   email     String   @unique
-  role      String   @default("user") // admin | user
+  role      String   @default("user")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   databases DatabaseConnection[]
   queries   QueryLog[]
+  chats     Chat[]   // ✅ NEW
 }
 
-enum DatabaseType {
-  POSTGRESQL
-  MYSQL
-}
+///////////////////////
+// DATABASE CONNECTION
+///////////////////////
 
 model DatabaseConnection {
   id        String   @id @default(uuid())
@@ -39,9 +62,54 @@ model DatabaseConnection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User @relation(fields: [userId], references: [id])
-  queries QueryLog[]
+  user     User     @relation(fields: [userId], references: [id])
+  queries  QueryLog[]
+  chats    Chat[]   // ✅ NEW
 }
+
+///////////////////////
+// CHAT (NEW)
+///////////////////////
+
+model Chat {
+  id         String   @id @default(uuid())
+  userId     String
+  databaseId String?   // 👈 which DB this chat is using
+
+  title      String    // 👈 shown in history
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id])
+  database DatabaseConnection? @relation(fields: [databaseId], references: [id])
+
+  messages Message[]
+}
+
+///////////////////////
+// MESSAGE (NEW)
+///////////////////////
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+
+  role      Role
+  content   String
+
+  // SQL-specific fields (optional per message)
+  generatedSQL String?
+  result       Json?
+
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id])
+}
+
+///////////////////////
+// QUERY LOG (KEEP)
+///////////////////////
 
 model QueryLog {
   id        String   @id @default(uuid())
@@ -53,13 +121,9 @@ model QueryLog {
   status       StatusType
   errorMessage String?
   executionTime Int
+
   createdAt    DateTime @default(now())
 
   user   User @relation(fields: [userId], references: [id])
   databaseConnection DatabaseConnection @relation(fields: [databaseConnectionId], references: [id])
-}
-
-enum StatusType {
-  SUCCESS
-  ERROR
 }
