@@ -1,23 +1,9 @@
-import { getUser } from "@/lib/actions/user";
-import ChatClient from "./ChatClient";
-import { getMessagesByChatId } from "@/lib/actions/chat";
+import ChatUi from "@/components/chat-ui/ChatUi";
 
 export default async function Page({
   params,
 }: {
-  params: { chatId: string };
+  params: Promise<{ chatId: string }>;
 }) {
-  const { chatId } = params;
-
-  const user = await getUser();
-
-  const messages = await getMessagesByChatId(chatId);
-
-  return (
-    <ChatClient
-      chatId={chatId}
-      initialMessages={messages}
-      username={user?.name || "User"}
-    />
-  );
+  return <ChatUi />;
 }

@@ -149,7 +149,7 @@ Rules:
   });
   console.log("Raw LLM output:", text);
 
-  let sql = text
+  const sql = text
     .replace(/```sql/g, "")
     .replace(/```/g, "")
     .trim();
