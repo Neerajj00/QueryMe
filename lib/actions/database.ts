@@ -142,7 +142,7 @@ export async function addDatabase(formData: FormData) {
   revalidatePath("/dashboard/databases");
 }
 
-
+export type DatabaseType = Awaited<ReturnType<typeof getDatabases>>[number];
 export async function getDatabases() {
   const { userId: clerkId } = await auth();
   if (!clerkId) throw new Error("Unauthorized");

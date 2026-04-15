@@ -6,10 +6,9 @@ export default function ChatUi({ messages, onSend, onRunQuery }: any) {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-useEffect(() => {
-  bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-}, [messages]);
-
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
@@ -45,18 +44,22 @@ useEffect(() => {
                     {/* SQL BLOCK */}
                     {msg.generatedSQL && (
                       <div className="relative rounded-lg border border-muted/40 bg-background/50 p-3 text-xs font-mono">
-                        
                         {/* ACTION BUTTONS */}
                         <div className="absolute top-2 right-2 flex items-center gap-1">
-
                           {/* COPY BUTTON */}
                           <div className="relative">
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(msg.generatedSQL);
-                                setCopiedMap((prev) => ({ ...prev, [msg.id]: true }));
+                                setCopiedMap((prev) => ({
+                                  ...prev,
+                                  [msg.id]: true,
+                                }));
                                 setTimeout(() => {
-                                  setCopiedMap((prev) => ({ ...prev, [msg.id]: false }));
+                                  setCopiedMap((prev) => ({
+                                    ...prev,
+                                    [msg.id]: false,
+                                  }));
                                 }, 1000);
                               }}
                               className="p-1.5 rounded-md hover:bg-muted transition"
@@ -68,7 +71,13 @@ useEffect(() => {
                                 strokeWidth="1.6"
                                 viewBox="0 0 24 24"
                               >
-                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <rect
+                                  x="9"
+                                  y="9"
+                                  width="13"
+                                  height="13"
+                                  rx="2"
+                                />
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                               </svg>
                             </button>
@@ -84,9 +93,15 @@ useEffect(() => {
                           {/* RUN SQL BUTTON */}
                           <button
                             onClick={async () => {
-                              setLoadingMap((prev) => ({ ...prev, [msg.id]: true }));
+                              setLoadingMap((prev) => ({
+                                ...prev,
+                                [msg.id]: true,
+                              }));
                               await onRunQuery(msg.id, msg.generatedSQL);
-                              setLoadingMap((prev) => ({ ...prev, [msg.id]: false }));
+                              setLoadingMap((prev) => ({
+                                ...prev,
+                                [msg.id]: false,
+                              }));
                             }}
                             className="p-1.5 rounded-md hover:bg-muted transition flex items-center justify-center"
                           >
@@ -102,7 +117,6 @@ useEffect(() => {
                               </svg>
                             )}
                           </button>
-
                         </div>
 
                         {/* SQL TEXT */}
@@ -121,7 +135,7 @@ useEffect(() => {
           );
         })}
 
-<div ref={bottomRef} />
+        <div ref={bottomRef} />
       </div>
 
       {/* INPUT */}

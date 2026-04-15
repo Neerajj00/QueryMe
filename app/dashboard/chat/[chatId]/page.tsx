@@ -1,9 +1,5 @@
-import ChatUi from "@/components/chat-ui/ChatUi";
+import ChatPageClient from "./ChatPageClient";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ chatId: string }>;
-}) {
-  return <ChatUi />;
+export default function Page() {
+  return <ChatPageClient />;
 }

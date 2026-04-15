@@ -1,16 +1,20 @@
+// page.tsx (NO "use client")
 
 import { getUser } from "@/lib/actions/user";
 import { getDatabases } from "@/lib/actions/database";
-import EmptyUi from "@/components/chat-ui/EmptyUi";
+import EmptyUiPageClient from "./EmptyUiPageClient";
 
 export default async function Page() {
   const user = await getUser();
-  const databases = await getDatabases(); // 🔥 HERE
+  if(!user){
+    throw new Error("Unauthorized");
+  }
+  const databases = await getDatabases();
 
   return (
-    <EmptyUi
-    username={user?.name || "User"}
-    databases={databases}
+    <EmptyUiPageClient
+      username={user.name || "User"}
+      databases={databases}
     />
   );
 }

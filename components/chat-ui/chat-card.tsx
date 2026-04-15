@@ -18,11 +18,7 @@ interface ChatCardProps {
   onSend: (text: string, dbId: string) => void; // ✅ UPDATED
 }
 
-export function ChatCard({
-  userName,
-  databases,
-  onSend,
-}: ChatCardProps) {
+export function ChatCard({ userName, databases, onSend }: ChatCardProps) {
   const [inputValue, setInputValue] = useState("");
   const [selectedDb, setSelectedDb] = useState<string | null>(null);
 
@@ -44,7 +40,6 @@ export function ChatCard({
   return (
     <div className="w-full max-w-xl rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md">
       <div className="flex flex-col gap-6 items-center">
-
         {/* Header */}
         <div className="flex justify-between w-full">
           <div className="flex items-center gap-2">
@@ -59,8 +54,8 @@ export function ChatCard({
             </SelectTrigger>
 
             <SelectContent>
-              {databases.length > 0 ? (
-                databases.map((db) => (
+              {(databases ?? []).length > 0 ? (
+                (databases ?? []).map((db) => (
                   <SelectItem key={db.id} value={db.id}>
                     {db.name}
                   </SelectItem>
@@ -82,9 +77,7 @@ export function ChatCard({
             onSubmit={handleSendMessage}
             disabled={!selectedDb} // ✅ KEY
             placeholder={
-              selectedDb
-                ? "Ask me anything..."
-                : "Select a database first..."
+              selectedDb ? "Ask me anything..." : "Select a database first..."
             }
           />
           <InputControls />
