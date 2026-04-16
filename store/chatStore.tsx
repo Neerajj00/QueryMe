@@ -9,13 +9,14 @@ type Message = {
 
 type Chat = {
   id: string;
+  dbId: string; // 🔥 add this
   messages: Message[];
 };
 
 type ChatStore = {
   chats: Record<string, Chat>;
 
-  createChatIfNotExists: (chatId: string) => void;
+  createChatIfNotExists: (chatId: string, dbId: string) => void;
   addMessage: (chatId: string, message: Message) => void;
   updateLastMessage: (chatId: string, updates: Partial<Message>) => void;
 };
@@ -24,7 +25,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   // ✅ MUST EXIST
   chats: {},
 
-  createChatIfNotExists: (chatId) =>
+  createChatIfNotExists: (chatId, dbId) =>
     set((state) => {
       if (state.chats[chatId]) return state;
 
@@ -33,32 +34,32 @@ export const useChatStore = create<ChatStore>((set) => ({
           ...state.chats,
           [chatId]: {
             id: chatId,
+            dbId, // 🔥 STORE IT HERE
             messages: [],
           },
         },
       };
     }),
+  addMessage: (chatId, message) =>
+    set((state) => {
+      console.log("STATE BEFORE", state.chats);
+      const existingChat = state.chats[chatId];
 
-    addMessage: (chatId, message) =>
-      set((state) => {
-        console.log("STATE BEFORE", state.chats);
-        const existingChat = state.chats[chatId];
-    
-        const chat = existingChat || {
-          id: chatId,
-          messages: [],
-        };
-    
-        return {
-          chats: {
-            ...state.chats,
-            [chatId]: {
-              ...chat,
-              messages: [...chat.messages, message],
-            },
+      const chat = existingChat || {
+        id: chatId,
+        messages: [],
+      };
+
+      return {
+        chats: {
+          ...state.chats,
+          [chatId]: {
+            ...chat,
+            messages: [...chat.messages, message],
           },
-        };
-      }),
+        },
+      };
+    }),
 
   updateLastMessage: (chatId, updates) =>
     set((state) => {

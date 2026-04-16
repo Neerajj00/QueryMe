@@ -1,5 +1,3 @@
-"use server";
-
 import { ai } from "@/lib/gemini";
 import { getDatabaseWithConnection } from "@/lib/actions/database";
 import { Client } from "pg";
@@ -86,7 +84,7 @@ async function getFullSchema(db: {
 
 const schemaCache = new Map<string, TableSchema[]>();
 
-async function getCachedSchema(
+export async function getCachedSchema(
   dbId: string,
   db: { dbType: string; connectionUrl: string }
 ) {
@@ -100,11 +98,6 @@ async function getCachedSchema(
   return schema;
 }
 
-/* ---------------- FORMAT ---------------- */
-
-function formatSchema(schema: TableSchema[]) {
-  return schema.map((t) => `${t.table}(${t.columns.join(", ")})`).join("\n");
-}
 
 /* ---------------- GENERATE SQL ---------------- */
 

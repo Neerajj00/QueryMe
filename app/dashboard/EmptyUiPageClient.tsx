@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import EmptyUi from "@/components/chat-ui/EmptyUi";
 import { DatabaseType } from "@/lib/actions/database";
-import { sendMessage } from "@/lib/chat";
+import { useChatStore } from "@/store/chatStore";
 
 type Props = {
   username: string;
@@ -14,14 +14,21 @@ type Props = {
 export default function EmptyUiPageClient({ username, databases }: Props) {
   const router = useRouter();
 
-  const handleSubmit = async (input:string) => {
-    if (!input.trim()) return;
+  const handleSubmit = async (input: string, dbId: string) => {
+    if (!input.trim() || !dbId) return;
   
     const chatId = nanoid();
   
-    await sendMessage({
-      chatId,
-      text: input,
+    const { createChatIfNotExists, addMessage } = useChatStore.getState();
+  
+    // ✅ create chat WITH dbId
+    createChatIfNotExists(chatId, dbId);
+  
+    // ✅ add first message
+    addMessage(chatId, {
+      id: nanoid(),
+      role: "user",
+      content: input,
     });
   
     router.push(`/dashboard/chat/${chatId}`);

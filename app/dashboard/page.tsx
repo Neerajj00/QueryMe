@@ -1,4 +1,3 @@
-// page.tsx (NO "use client")
 
 import { getUser } from "@/lib/actions/user";
 import { getDatabases } from "@/lib/actions/database";
