@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
-type Message = {
+export type Message = {
   id: string;
   role: "user" | "assistant";
   content?: string;
   generatedSQL?: string;
+  result?: any;
 };
-
 type Chat = {
   id: string;
   dbId: string; // 🔥 add this
@@ -20,6 +20,11 @@ type ChatStore = {
   addMessage: (chatId: string, message: Message) => void;
   setMessages: (chatId: string, messages: Message[]) => void;
   updateLastMessage: (chatId: string, updates: Partial<Message>) => void;
+  updateMessage: (
+    chatId: string,
+    messageId: string,
+    data: Partial<Message>
+  ) => void;
 };
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -41,34 +46,34 @@ export const useChatStore = create<ChatStore>((set) => ({
         },
       };
     }),
-    addMessage: (chatId, message) =>
-      set((state) => {
-        const existing = state.chats[chatId]?.messages || [];
-    
-        if (existing.find((m) => m.id === message.id)) {
-          return state; // ✅ skip duplicate
-        }
-    
-        return {
-          chats: {
-            ...state.chats,
-            [chatId]: {
-              ...state.chats[chatId],
-              messages: [...existing, message],
-            },
-          },
-        };
-      }),
-    setMessages: (chatId, messages) =>
-      set((state) => ({
+  addMessage: (chatId, message) =>
+    set((state) => {
+      const existing = state.chats[chatId]?.messages || [];
+
+      if (existing.find((m) => m.id === message.id)) {
+        return state; // ✅ skip duplicate
+      }
+
+      return {
         chats: {
           ...state.chats,
           [chatId]: {
             ...state.chats[chatId],
-            messages,
+            messages: [...existing, message],
           },
         },
-      })),
+      };
+    }),
+  setMessages: (chatId, messages) =>
+    set((state) => ({
+      chats: {
+        ...state.chats,
+        [chatId]: {
+          ...state.chats[chatId],
+          messages,
+        },
+      },
+    })),
 
   updateLastMessage: (chatId, updates) =>
     set((state) => {
@@ -91,6 +96,23 @@ export const useChatStore = create<ChatStore>((set) => ({
           [chatId]: {
             ...chat,
             messages,
+          },
+        },
+      };
+    }),
+  updateMessage: (chatId: string, messageId: string, data: Partial<Message>) =>
+    set((state) => {
+      const chat = state.chats[chatId];
+      if (!chat) return state;
+
+      return {
+        chats: {
+          ...state.chats,
+          [chatId]: {
+            ...chat,
+            messages: chat.messages.map((msg) =>
+              msg.id === messageId ? { ...msg, ...data } : msg
+            ),
           },
         },
       };

@@ -103,25 +103,68 @@ export async function getCachedSchema(
 
 type RunQueryResult = { rows: Record<string, unknown>[] } | { error: string };
 
+
+// 🔥 sanitize SQL (PostgreSQL only)
+function sanitizeSQL(
+  sql: string,
+  schema: { table: string; columns: string[] }[]
+) {
+
+  const parts = sql.split(/('.*?')/); // avoid string literals
+
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i].startsWith("'")) continue;
+
+    for (const t of schema) {
+      const table = t.table;
+
+      // ✅ replace table only if NOT already quoted
+      parts[i] = parts[i].replace(
+        new RegExp(`(?<!")\\b${table}\\b(?!")`, "g"),
+        `"${table}"`
+      );
+
+      for (const col of t.columns) {
+        // ✅ replace column only if NOT already quoted
+        parts[i] = parts[i].replace(
+          new RegExp(`(?<!")\\b${col}\\b(?!")`, "g"),
+          `"${col}"`
+        );
+      }
+    }
+  }
+
+  return parts.join("");
+}
+
 export async function runQuery(
   dbId: string,
   sql: string
 ): Promise<RunQueryResult> {
-  console.log(`Running query on DB ${dbId}:`, sql); 
+  console.log(`Running query on DB ${dbId}:`, sql);
+
   const db = await getDatabaseWithConnection(dbId);
 
   try {
+    // ✅ POSTGRESQL
     if (db.dbType === "POSTGRESQL") {
       const client = new Client({ connectionString: db.connectionUrl });
       await client.connect();
 
-      const res = await client.query<Record<string, unknown>>(sql);
+      // 🔥 get schema + sanitize SQL
+      const schema = await getCachedSchema(dbId, db);
+      const safeSQL = sanitizeSQL(sql, schema);
+
+      console.log("SAFE SQL:", safeSQL);
+
+      const res = await client.query<Record<string, unknown>>(safeSQL);
 
       await client.end();
 
       return { rows: res.rows };
     }
 
+    // ✅ MYSQL (no sanitize needed)
     if (db.dbType === "MYSQL") {
       const conn = await mysql.createConnection(db.connectionUrl);
 

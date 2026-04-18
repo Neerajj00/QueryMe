@@ -8,7 +8,7 @@ export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages.length]);
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
@@ -176,6 +176,21 @@ export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any)
 function ResultToggle({ result }: any) {
   const [open, setOpen] = useState(false);
 
+  const isArray = Array.isArray(result);
+  const isRowsObject = result && typeof result === "object" && "rows" in result;
+  const isPrimitive =
+    typeof result === "string" ||
+    typeof result === "number" ||
+    typeof result === "boolean";
+
+  let tableData: any[] = [];
+
+  if (isArray) {
+    tableData = result;
+  } else if (isRowsObject) {
+    tableData = result.rows;
+  }
+
   return (
     <div className="mt-2">
       <button
@@ -190,30 +205,54 @@ function ResultToggle({ result }: any) {
           open ? "max-h-[500px] mt-2" : "max-h-0"
         }`}
       >
-        <div className="overflow-auto border border-muted/40 rounded">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted">
-              <tr>
-                {Object.keys(result[0] || {}).map((k) => (
-                  <th key={k} className="px-3 py-2 text-left">
-                    {k}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {result.map((row: any, i: number) => (
-                <tr key={i} className="border-t">
-                  {Object.values(row).map((v: any, j) => (
-                    <td key={j} className="px-3 py-2">
-                      {String(v)}
-                    </td>
+        {/* ✅ TABLE */}
+        {tableData.length > 0 && (
+          <div className="overflow-auto border border-muted/40 rounded">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  {Object.keys(tableData[0]).map((k) => (
+                    <th key={k} className="px-3 py-2 text-left">
+                      {k}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {tableData.map((row, i) => (
+                  <tr key={i} className="border-t">
+                    {Object.values(row).map((v: any, j) => (
+                      <td key={j} className="px-3 py-2">
+                        {String(v)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ✅ PRIMITIVE */}
+        {isPrimitive && (
+          <div className="p-3 border rounded text-sm bg-muted/30">
+            {String(result)}
+          </div>
+        )}
+
+        {/* ✅ OBJECT (non-table) */}
+        {!isPrimitive && !tableData.length && result && (
+          <pre className="p-3 border rounded text-xs overflow-auto bg-muted/30">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        )}
+
+        {/* ✅ EMPTY */}
+        {!isPrimitive && !tableData.length && !result && (
+          <div className="p-3 text-sm text-muted-foreground">
+            No result
+          </div>
+        )}
       </div>
     </div>
   );

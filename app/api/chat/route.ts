@@ -5,7 +5,6 @@ import { groq } from "@ai-sdk/groq";
 import { streamText } from "ai";
 import { NextRequest } from "next/server";
 
-
 // ✅ POST endpoint to handle user message and generate SQL
 export async function POST(req: NextRequest) {
   try {
@@ -43,6 +42,14 @@ Rules:
 - No markdown
 - LIMIT 10
 - Only SELECT queries
+
+IMPORTANT:
+- if it is PostgreSQL
+- ALWAYS wrap table names and column names in double quotes
+- Especially for camelCase names
+
+Example:
+SELECT * FROM "User" ORDER BY "createdAt" DESC;
 `;
 
     // ✅ Stream AI response
