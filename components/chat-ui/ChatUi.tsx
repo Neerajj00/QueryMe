@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function ChatUi({ messages, onSend, onRunQuery }: any) {
+export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any) {
   const [copiedMap, setCopiedMap] = useState<Record<string, boolean>>({});
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
@@ -151,6 +151,7 @@ export default function ChatUi({ messages, onSend, onRunQuery }: any) {
               e.currentTarget.value = "";
             }
           }}
+          disabled={isSending}
         />
 
         <button
@@ -161,6 +162,7 @@ export default function ChatUi({ messages, onSend, onRunQuery }: any) {
               textarea.value = "";
             }
           }}
+          disabled={isSending}
           className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm"
         >
           Send

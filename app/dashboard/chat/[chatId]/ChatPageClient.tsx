@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { nanoid } from "nanoid";
 import { useChatStore } from "@/store/chatStore";
@@ -8,6 +8,8 @@ import ChatUi from "@/components/chat-ui/ChatUi";
 import { saveMessage } from "@/lib/actions/chat";
 
 export default function ChatPageClient() {
+  const [isSending, setIsSending] = useState(false);
+
   const params = useParams();
   const chatId = Array.isArray(params.chatId)
     ? params.chatId[0]
@@ -58,27 +60,32 @@ export default function ChatPageClient() {
   }
   
   const handleSend = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isSending) return; // 🔥 BLOCK
   
-    const { addMessage } = useChatStore.getState();
-    const userMessageId = nanoid();
+    setIsSending(true);
   
-    // ✅ STEP 1: Add user message to UI store (instant feedback)
-    addMessage(chatId, {
-      id: userMessageId,
-      role: "user",
-      content: text,
-    });
+    try {
+      const { addMessage } = useChatStore.getState();
   
-    // ✅ STEP 2: Save user message to DATABASE
-    await saveMessage({
-      chatId,
-      role: "user",
-      content: text,
-    });
+      const userMessageId = nanoid();
   
-    // ✅ STEP 3: Generate AI response (will be saved in API route)
-    await generateAIResponse(chatId, text);
+      // user message
+      addMessage(chatId, {
+        id: userMessageId,
+        role: "user",
+        content: text,
+      });
+  
+      await saveMessage({
+        chatId,
+        role: "user",
+        content: text,
+      });
+  
+      await generateAIResponse(chatId, text);
+    } finally {
+      setIsSending(false); // 🔥 release lock
+    }
   };
 
   useEffect(() => {
@@ -122,6 +129,6 @@ export default function ChatPageClient() {
   }, [chatId]);
  
   return (
-    <ChatUi messages={messages} onSend={handleSend} onRunQuery={()=>{}} />
+    <ChatUi messages={messages} onSend={handleSend} onRunQuery={()=>{}} isSending={isSending} />
   );
 }
