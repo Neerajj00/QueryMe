@@ -18,103 +18,117 @@ export default function ChatPageClient() {
     : params.chatId!;
 
   const chat = useChatStore((s) => s.chats[chatId]);
-  const messages:Message[] = chat?.messages ?? [];
+  const messages: Message[] = chat?.messages ?? [];
 
+  // 🔥 GENERATE AI RESPONSE (FIXED)
   async function generateAIResponse(chatId: string, text: string) {
-    const { chats, addMessage, updateLastMessage } = useChatStore.getState();
-  
+    const { chats, addMessage, updateLastMessage } =
+      useChatStore.getState();
+
     const chat = chats[chatId];
     if (!chat) return;
-  
+
     const dbId = chat.dbId;
-  
+
     // ✅ assistant placeholder
     addMessage(chatId, {
       id: nanoid(),
       role: "assistant",
       generatedSQL: "",
     });
-  
+
     const res = await fetch("/api/chat", {
       method: "POST",
-      body: JSON.stringify({ dbId, message: text,chatId }),
+      body: JSON.stringify({ dbId, message: text, chatId }),
     });
-  
+
     if (!res.body) return;
-  
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-  
+
     let aiText = "";
-  
+
+    // 🔥 stream full response
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-  
+
       const chunk = decoder.decode(value);
       aiText += chunk;
-  
-      updateLastMessage(chatId, {
-        generatedSQL: aiText,
-      });
     }
 
+    // 🔥 VALIDATE AFTER STREAM COMPLETE
+    const cleanSQL = aiText.trim();
+
+    const isValid =
+      cleanSQL === "INVALID_QUERY"
+        ? false
+        : cleanSQL.toLowerCase().startsWith("select");
+
+    updateLastMessage(chatId, {
+      generatedSQL: isValid ? cleanSQL : "INVALID_QUERY",
+    });
   }
-  
+
   const handleSend = async (text: string) => {
-    if (!text.trim() || isSending) return; // 🔥 BLOCK
-  
+    if (!text.trim() || isSending) return;
+
     setIsSending(true);
-  
+
     try {
       const { addMessage } = useChatStore.getState();
-  
+
       const userMessageId = nanoid();
-  
-      // user message
+
+      // ✅ user message
       addMessage(chatId, {
         id: userMessageId,
         role: "user",
         content: text,
       });
-  
+
       await saveMessage({
         chatId,
         role: "user",
         content: text,
       });
-  
+
       await generateAIResponse(chatId, text);
     } finally {
-      setIsSending(false); // 🔥 release lock
+      setIsSending(false);
     }
   };
 
-
-  // to run SQL query when user clicks the run button next to generated SQL
+  // 🔥 RUN QUERY (BLOCK INVALID)
   const handleQueryRun = async (messageId: string, sql: string) => {
     const { chats, updateMessage } = useChatStore.getState();
-  
+
     const chat = chats[chatId];
     if (!chat) return;
-  
+
     const dbId = chat.dbId;
-  
+
     try {
-      // 🔥 run query (server action)
-      const result = await runQuery(
-        dbId,
-        sql,
-      );
-      console.log("result",result)
-      // ✅ update message with result
+      // 🚫 BLOCK INVALID QUERY
+      if (
+        sql === "INVALID_QUERY" ||
+        !sql.toLowerCase().startsWith("select")
+      ) {
+        updateMessage(chatId, messageId, {
+          result: { error: "Invalid or unrelated query" },
+        });
+        return;
+      }
+
+      const result = await runQuery(dbId, sql);
+
       updateMessage(chatId, messageId, {
         result,
       });
     } catch (err: any) {
       console.error(err);
-  
-      // ❌ handle error
+
       updateMessage(chatId, messageId, {
         result: {
           error: err?.message || "Query failed",
@@ -123,55 +137,45 @@ export default function ChatPageClient() {
     }
   };
 
-
-  // to handle the case when user sends the first message from EmptyUI and lands on this page,
-  // we need to save that message to DB and then generate AI response
+  // 🔥 HANDLE FIRST MESSAGE
   useEffect(() => {
     const { chats } = useChatStore.getState();
     const chat = chats[chatId];
-  
+
     if (!chat) return;
-  
-    // ✅ Check if this is the first message and it's a user message
+
     if (chat.messages.length === 1 && chat.messages[0].role === "user") {
       const firstMessage = chat.messages[0];
-      
-      // ✅ First, save the user message to DB (coming from EmptyUI)
+
       saveMessage({
         chatId,
         role: "user",
         content: firstMessage.content || "",
       }).then(() => {
-        // ✅ Then generate AI response
         generateAIResponse(chatId, firstMessage.content || "");
       });
     }
   }, [chatId]);
 
-
-
-  
-  
-  // to load chat messages on page load or when chatId changes
+  // 🔥 LOAD CHAT
   const [loadingChat, setLoadingChat] = useState(false);
+
   useEffect(() => {
-    let isMounted = true; // 🔥 prevents state update after unmount
-  
+    let isMounted = true;
+
     async function loadChat() {
       setLoadingChat(true);
-  
+
       try {
         const res = await fetch(`/api/chat/${chatId}`);
         const data = await res.json();
-  
+
         if (!isMounted) return;
-  
+
         const { createChatIfNotExists, setMessages } =
           useChatStore.getState();
-  
+
         createChatIfNotExists(chatId, data.databaseId);
-  
-        // ✅ Replace messages (correct)
         setMessages(chatId, data.messages);
       } catch (err) {
         console.error("Failed to load chat:", err);
@@ -179,21 +183,24 @@ export default function ChatPageClient() {
         if (isMounted) setLoadingChat(false);
       }
     }
-  
+
     loadChat();
-  
+
     return () => {
-      isMounted = false; // 🔥 cleanup
+      isMounted = false;
     };
   }, [chatId]);
 
-  // centrally aligned loader
-  if(loadingChat) {
-    return <Loader className="animate-spin mx-auto mt-10" />
+  if (loadingChat) {
+    return <Loader className="animate-spin mx-auto mt-10" />;
   }
 
- 
   return (
-    <ChatUi messages={messages} onSend={handleSend} onRunQuery={handleQueryRun} isSending={isSending} />
+    <ChatUi
+      messages={messages}
+      onSend={handleSend}
+      onRunQuery={handleQueryRun}
+      isSending={isSending}
+    />
   );
 }

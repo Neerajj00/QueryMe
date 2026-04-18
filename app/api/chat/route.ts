@@ -26,32 +26,51 @@ export async function POST(req: NextRequest) {
 
     // ✅ Build prompt
     const prompt = `
-You are an expert SQL generator.
+    You are an expert SQL generator.
 
-Database type: ${db.dbType}
+    Database type: ${db.dbType}
 
-Schema:
-${schemaText}
+    Schema:
+    ${schemaText}
 
-User:
-"${message}"
+    User:
+    "${message}"
 
-Rules:
-- Only SQL
-- No explanation
-- No markdown
-- LIMIT 10
-- Only SELECT queries
+    Rules:
+    - Return ONLY ONE SQL query OR the string INVALID_QUERY
+    - No explanation
+    - No markdown
+    - Only SELECT queries
+    - Always include LIMIT 10
 
-IMPORTANT:
-- if it is PostgreSQL
-- ALWAYS wrap table names and column names in double quotes
-- Especially for camelCase names
+    STRICT RULES:
+    - Generate SQL ONLY if the user clearly asks about data in the database
+    - The request must explicitly relate to table names or columns in the schema
 
-Example:
-SELECT * FROM "User" ORDER BY "createdAt" DESC;
-`;
+    - If the input is:
+      - random text (e.g. "asdasd", "zccscsc")
+      - vague (e.g. "something", "anything")
+      - general knowledge (e.g. "what is galaxy")
+      - not clearly mappable to schema
 
+    → THEN return exactly:
+    INVALID_QUERY
+
+    - DO NOT assume random text is a name
+    - DO NOT guess mappings
+    - DO NOT search tables unless explicitly implied
+
+    - If PostgreSQL:
+      ALWAYS wrap table and column names in double quotes
+
+    Example valid:
+    "show all users"
+    → SELECT * FROM "User" ORDER BY "createdAt" DESC LIMIT 10;
+
+    Example invalid:
+    "asdasd"
+    → INVALID_QUERY
+    `;
     // ✅ Stream AI response
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),

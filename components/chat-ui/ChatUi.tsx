@@ -9,14 +9,15 @@ export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any)
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
-
+  
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-[5%] md:px-[10%] lg:px-[20%] py-4 space-y-4">
         {messages.map((msg: any) => {
           const isUser = msg.role === "user";
-
+          const isInvalid = msg.generatedSQL === "INVALID_QUERY";
+          
           return (
             <div key={msg.id} className="space-y-2">
               {/* USER MESSAGE */}
@@ -41,13 +42,19 @@ export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any)
                       </div>
                     )}
 
+                    
                     {/* SQL BLOCK */}
                     {msg.generatedSQL && (
-                      <div className="relative rounded-lg border border-muted/40 bg-background/50 p-3 text-xs font-mono">
+
+                      <div
+                        className={`relative rounded-lg border p-3 text-xs font-mono bg-background/50 transition-colors
+                          ${isInvalid ? "border-red-500/50 bg-red-500/5" : "border-muted/40"}
+                        `}
+                      >
                         {/* ACTION BUTTONS */}
                         <div className="absolute top-2 right-2 flex items-center gap-1">
                           {/* COPY BUTTON */}
-                          <div className="relative">
+                          {!isInvalid && (<div className="relative">
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(msg.generatedSQL);
@@ -88,10 +95,10 @@ export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any)
                                 Copied!
                               </div>
                             )}
-                          </div>
+                          </div>)}
 
                           {/* RUN SQL BUTTON */}
-                          <button
+                          {!isInvalid && (<button
                             onClick={async () => {
                               setLoadingMap((prev) => ({
                                 ...prev,
@@ -116,7 +123,8 @@ export default function ChatUi({ messages, onSend, onRunQuery, isSending }: any)
                                 <path d="M6 4l10 6-10 6V4z" />
                               </svg>
                             )}
-                          </button>
+                          </button>)}
+                          
                         </div>
 
                         {/* SQL TEXT */}
