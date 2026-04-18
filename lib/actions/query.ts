@@ -1,4 +1,4 @@
-import { ai } from "@/lib/gemini";
+"use server";
 import { getDatabaseWithConnection } from "@/lib/actions/database";
 import { Client } from "pg";
 import mysql from "mysql2/promise";
@@ -167,6 +167,7 @@ export async function runQuery(
   dbId: string,
   sql: string
 ): Promise<RunQueryResult> {
+  console.log(`Running query on DB ${dbId}:`, sql); 
   const db = await getDatabaseWithConnection(dbId);
 
   try {

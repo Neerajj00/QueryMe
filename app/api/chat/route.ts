@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     const schemaText = schema
       .map((t) => `${t.table}(${t.columns.join(", ")})`)
       .join("\n");
+      console.log("schemaText", schemaText);
 
     const prompt = `
                 You are an expert SQL generator.
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
                 `;
 
     // 4️⃣ STREAMING 🔥
-    const result = await streamText({
+    const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
       prompt,
     });

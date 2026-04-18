@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { nanoid } from "nanoid";
 import { useChatStore } from "@/store/chatStore";
 import ChatUi from "@/components/chat-ui/ChatUi";
+import { runQuery } from "@/lib/actions/query";
 
 export default function ChatPageClient() {
   const params = useParams();
@@ -54,6 +55,7 @@ export default function ChatPageClient() {
       });
     }
   }
+  
   const handleSend = async (text: string) => {
     if (!text.trim()) return;
   
@@ -87,6 +89,6 @@ export default function ChatPageClient() {
   }, [chatId]);
  
   return (
-    <ChatUi messages={messages} onSend={handleSend} onRunQuery={() => {}} />
+    <ChatUi messages={messages} onSend={handleSend} onRunQuery={()=>{}} />
   );
 }

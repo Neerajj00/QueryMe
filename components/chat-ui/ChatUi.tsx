@@ -120,7 +120,7 @@ export default function ChatUi({ messages, onSend, onRunQuery }: any) {
                         </div>
 
                         {/* SQL TEXT */}
-                        <pre className="whitespace-pre-wrap break-words pr-14">
+                        <pre className="whitespace-pre-wrap wrap-break-words pr-14">
                           {msg.generatedSQL}
                         </pre>
                       </div>

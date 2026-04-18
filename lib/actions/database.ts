@@ -184,6 +184,8 @@ export async function getDatabaseWithConnection(id: string) {
       userId: dbUser?.id, // 🔒 important security check
     },
   });
+  console.log("dbUser",dbUser)
+  console.log("db",db)
 
   if (!db) throw new Error("Database not found");
 
