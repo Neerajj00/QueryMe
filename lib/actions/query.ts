@@ -99,66 +99,6 @@ export async function getCachedSchema(
 }
 
 
-/* ---------------- GENERATE SQL ---------------- */
-
-import { generateText } from "ai";
-import { groq } from "@ai-sdk/groq";
-
-export async function generateQuery(
-  dbId: string,
-  prompt: string
-): Promise<{ generatedSQL: string }> {
-  const db = await getDatabaseWithConnection(dbId);
-  const schema = await getCachedSchema(dbId, db);
-
-  const schemaText = schema
-    .map((t) => `${t.table}(${t.columns.join(", ")})`)
-    .join("\n");
-
-  const promptText = `
-You are an expert SQL generator.
-
-Database type: ${db.dbType}
-
-Schema:
-${schemaText}
-
-User:
-"${prompt}"
-
-Rules:
-- Only SQL
-- No explanation
-- No markdown
-- LIMIT 10
-- Only SELECT queries
-`;
-
-
-  console.log("Prompt to LLM:", promptText);
-  const { text } = await generateText({
-    model: groq("llama-3.3-70b-versatile"),
-    prompt: promptText,
-  });
-  console.log("Raw LLM output:", text);
-
-  const sql = text
-    .replace(/```sql/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  // 🔐 safety
-  if (/drop|delete|truncate|update/i.test(sql)) {
-    throw new Error("Unsafe query generated");
-  }
-
-  if (!sql.toLowerCase().startsWith("select")) {
-    throw new Error("Only SELECT queries allowed");
-  }
-
-  return { generatedSQL: sql };
-}
-
 /* ---------------- RUN QUERY ---------------- */
 
 type RunQueryResult = { rows: Record<string, unknown>[] } | { error: string };
