@@ -1,0 +1,6 @@
+change the ui of both databases and history
+
+delete chat api and ui 
+
+test in mysql too
+
