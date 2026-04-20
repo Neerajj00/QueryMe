@@ -44,3 +44,17 @@ export async function saveMessage({
     },
   });
 }
+
+
+export async function deleteChat(id: string) {
+  try {
+    await prisma.chat.delete({
+      where: { id },
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error(err);
+    return { success: false };
+  }
+}
