@@ -7,6 +7,7 @@ import { useChatStore } from "@/store/chatStore";
 import ChatUi from "@/components/chat-ui/ChatUi";
 import { saveMessage } from "@/lib/actions/chat";
 import { runQuery } from "@/lib/actions/query";
+import Loading from "./loading";
 
 export default function ChatPageClient() {
   const params = useParams();
@@ -170,6 +171,11 @@ export default function ChatPageClient() {
   
     loadChat();
   }, [chatId]);
+
+  // add a loader while chat is loading
+  if (!chat) {
+    return <Loading />;
+  }
  
   return (
     <ChatUi messages={messages} onSend={handleSend} onRunQuery={handleQueryRun} />
