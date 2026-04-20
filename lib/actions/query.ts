@@ -232,7 +232,6 @@ export async function runQuery(
   dbId: string,
   sql: string
 ): Promise<RunQueryResult> {
-  console.log(`Running query on DB ${dbId}:`, sql);
 
   const db = await getDatabaseWithConnection(dbId);
 
@@ -280,7 +279,6 @@ export async function runQuery(
       const schema = await getCachedSchema(dbId, db);
       const safeSQL = sanitizeSQL(finalSQL, schema);
 
-      console.log("SAFE SQL:", safeSQL);
 
       const res = await client.query<Record<string, unknown>>(safeSQL);
 

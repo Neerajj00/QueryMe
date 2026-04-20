@@ -129,7 +129,6 @@ export default function ChatPageClient() {
     }
   };
   useEffect(() => {
-    console.log("useeffect is running")
     const { chats } = useChatStore.getState();
     const chat = chats[chatId];
   
