@@ -1,5 +1,5 @@
 import { getDatabaseWithConnection } from "@/lib/actions/database";
-import { getCachedSchema } from "@/lib/actions/query";
+import { getCachedRelationships, getCachedSchema } from "@/lib/actions/query";
 import { prisma } from "@/lib/prisma";
 import { groq } from "@ai-sdk/groq";
 import { streamText } from "ai";
@@ -24,53 +24,76 @@ export async function POST(req: NextRequest) {
       .map((t) => `${t.table}(${t.columns.join(", ")})`)
       .join("\n");
 
+
+    const relationships = await getCachedRelationships(dbId, db);
+
+    const relationshipText =
+      relationships.length > 0
+        ? relationships.join("\n")
+        : "No explicit relationships found.";
+
+
+
+
+
     // ✅ Build prompt
     const prompt = `
-    You are an expert SQL generator.
+You are an expert SQL generator.
 
-    Database type: ${db.dbType}
+Database type: ${db.dbType}
 
-    Schema:
-    ${schemaText}
+Schema:
+${schemaText}
 
-    User:
-    "${message}"
+Relationships:
+${relationshipText}
 
-    Rules:
-    - Return ONLY ONE SQL query OR the string INVALID_QUERY
-    - No explanation
-    - No markdown
-    - Only SELECT queries
-    - Always include LIMIT 10
+User:
+"${message}"
 
-    STRICT RULES:
-    - Generate SQL ONLY if the user clearly asks about data in the database
-    - The request must explicitly relate to table names or columns in the schema
+Rules:
+- Return ONLY ONE SQL query OR the string INVALID_QUERY
+- No explanation
+- No markdown
+- Only SELECT queries
+- Always include LIMIT 10
 
-    - If the input is:
-      - random text (e.g. "asdasd", "zccscsc")
-      - vague (e.g. "something", "anything")
-      - general knowledge (e.g. "what is galaxy")
-      - not clearly mappable to schema
+STRICT RULES:
+- Generate SQL ONLY if the user clearly asks about data in the database
+- The request must explicitly relate to table names or columns in the schema
 
-    → THEN return exactly:
-    INVALID_QUERY
+- If the input is:
+  - random text (e.g. "asdasd")
+  - vague (e.g. "something")
+  - general knowledge (e.g. "what is galaxy")
+  - not clearly mappable to schema
 
-    - DO NOT assume random text is a name
-    - DO NOT guess mappings
-    - DO NOT search tables unless explicitly implied
+→ THEN return exactly:
+INVALID_QUERY
 
-    - If PostgreSQL:
-      ALWAYS wrap table and column names in double quotes
+- DO NOT assume random text is a name
+- DO NOT guess mappings
+- DO NOT invent columns or tables
 
-    Example valid:
-    "show all users"
-    → SELECT * FROM "User" ORDER BY "createdAt" DESC LIMIT 10;
+- ALWAYS use JOINs when querying multiple tables
+- ALWAYS follow the Relationships section when joining tables
 
-    Example invalid:
-    "asdasd"
-    → INVALID_QUERY
-    `;
+- If no relationships are provided, assume columns ending with 'Id' are foreign keys
+
+- If PostgreSQL:
+  ALWAYS wrap table and column names in double quotes
+
+Example valid:
+"show all users"
+→ SELECT * FROM "User" ORDER BY "createdAt" DESC LIMIT 10;
+
+Example invalid:
+"asdasd"
+→ INVALID_QUERY
+`;
+
+console.log("Prompt for AI:", prompt);
+
     // ✅ Stream AI response
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
