@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ChatInput } from "./chat-input";
-import { InputControls } from "./input-controls";
 import { SuggestionBadges } from "./suggestion-badges";
 import {
   Select,
