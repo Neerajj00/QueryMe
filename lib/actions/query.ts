@@ -2,6 +2,7 @@
 import { getDatabaseWithConnection } from "@/lib/actions/database";
 import { Client } from "pg";
 import mysql from "mysql2/promise";
+import { RowDataPacket } from "mysql2";
 
 /* ---------------- TYPES ---------------- */
 
@@ -50,15 +51,15 @@ async function getFullSchema(db: {
     const conn = await mysql.createConnection(db.connectionUrl);
 
     const [rows] = await conn.query<
-      {
-        TABLE_NAME: string;
-        COLUMN_NAME: string;
-      }[]
-    >(`
-      SELECT TABLE_NAME, COLUMN_NAME
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-    `);
+    (RowDataPacket & {
+      TABLE_NAME: string;
+      COLUMN_NAME: string;
+    })[]
+  >(`
+    SELECT TABLE_NAME, COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+  `);
 
     await conn.end();
 
@@ -97,6 +98,96 @@ export async function getCachedSchema(
 
   return schema;
 }
+
+
+
+async function getRelationships(db: {
+  dbType: string;
+  connectionUrl: string;
+}): Promise<string[]> {
+  // ---------------- POSTGRESQL ----------------
+  if (db.dbType === "POSTGRESQL") {
+    const client = new Client({ connectionString: db.connectionUrl });
+    await client.connect();
+
+    const res = await client.query<{
+      table_name: string;
+      column_name: string;
+      foreign_table_name: string;
+      foreign_column_name: string;
+    }>(`
+      SELECT
+        tc.table_name,
+        kcu.column_name,
+        ccu.table_name AS foreign_table_name,
+        ccu.column_name AS foreign_column_name
+      FROM information_schema.table_constraints AS tc
+      JOIN information_schema.key_column_usage AS kcu
+        ON tc.constraint_name = kcu.constraint_name
+      JOIN information_schema.constraint_column_usage AS ccu
+        ON ccu.constraint_name = tc.constraint_name
+      WHERE tc.constraint_type = 'FOREIGN KEY';
+    `);
+
+    await client.end();
+
+    return res.rows.map(
+      (r) =>
+        `"${r.table_name}"."${r.column_name}" → "${r.foreign_table_name}"."${r.foreign_column_name}"`
+    );
+  }
+
+  // ---------------- MYSQL ----------------
+  if (db.dbType === "MYSQL") {
+    const conn = await mysql.createConnection(db.connectionUrl);
+
+    const [rows] = await conn.query<
+      (RowDataPacket & {
+        TABLE_NAME: string;
+        COLUMN_NAME: string;
+        REFERENCED_TABLE_NAME: string;
+        REFERENCED_COLUMN_NAME: string;
+      })[]
+    >(`
+      SELECT
+        TABLE_NAME,
+        COLUMN_NAME,
+        REFERENCED_TABLE_NAME,
+        REFERENCED_COLUMN_NAME
+      FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+      WHERE
+        TABLE_SCHEMA = DATABASE()
+        AND REFERENCED_TABLE_NAME IS NOT NULL;
+    `);
+
+    await conn.end();
+
+    return rows.map(
+      (r) =>
+        `"${r.TABLE_NAME}"."${r.COLUMN_NAME}" → "${r.REFERENCED_TABLE_NAME}"."${r.REFERENCED_COLUMN_NAME}"`
+    );
+  }
+
+  return [];
+}
+
+const relationshipCache = new Map<string, string[]>();
+
+export async function getCachedRelationships(
+  dbId: string,
+  db: { dbType: string; connectionUrl: string }
+) {
+  if (relationshipCache.has(dbId)) {
+    return relationshipCache.get(dbId)!;
+  }
+
+  const rels = await getRelationships(db);
+  relationshipCache.set(dbId, rels);
+
+  return rels;
+}
+
+
 
 
 /* ---------------- RUN QUERY ---------------- */
@@ -146,14 +237,48 @@ export async function runQuery(
   const db = await getDatabaseWithConnection(dbId);
 
   try {
+    /* ---------------- 🔒 SAFETY LAYER ---------------- */
+
+    const cleaned = sql.trim();
+
+    // ✅ Only allow SELECT
+    if (!/^select[\s\S]*$/i.test(cleaned)) {
+      return { error: "Only SELECT queries are allowed" };
+    }
+    // ❌ Block dangerous keywords
+    const forbidden = [
+      "insert",
+      "delete",
+      "drop",
+      "alter",
+      "truncate",
+    ];
+
+    const lower = cleaned.toLowerCase();
+
+    for (const word of forbidden) {
+      if (lower.includes(word)) {
+        return { error: `Forbidden keyword detected: ${word}` };
+      }
+    }
+
+    /* ---------------- LIMIT ENFORCEMENT ---------------- */
+
+    let finalSQL = cleaned;
+
+    if (!/limit\s+\d+/i.test(finalSQL)) {
+      finalSQL += " LIMIT 10";
+    }
+
+    /* ---------------- EXECUTION ---------------- */
+
     // ✅ POSTGRESQL
     if (db.dbType === "POSTGRESQL") {
       const client = new Client({ connectionString: db.connectionUrl });
       await client.connect();
 
-      // 🔥 get schema + sanitize SQL
       const schema = await getCachedSchema(dbId, db);
-      const safeSQL = sanitizeSQL(sql, schema);
+      const safeSQL = sanitizeSQL(finalSQL, schema);
 
       console.log("SAFE SQL:", safeSQL);
 
@@ -164,11 +289,13 @@ export async function runQuery(
       return { rows: res.rows };
     }
 
-    // ✅ MYSQL (no sanitize needed)
+    // ✅ MYSQL
     if (db.dbType === "MYSQL") {
       const conn = await mysql.createConnection(db.connectionUrl);
 
-      const [rows] = await conn.query<Record<string, unknown>[]>(sql);
+      const [rows] = await conn.query<Record<string, unknown>[]>(
+        finalSQL
+      );
 
       await conn.end();
 
