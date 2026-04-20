@@ -56,34 +56,33 @@ model DatabaseConnection {
   userId    String
   name      String
   dbType    DatabaseType
-
   connectionString String
 
-  isActive  Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   queries  QueryLog[]
-  chats    Chat[]   // ✅ NEW
+  chats    Chat[]
 }
 
 ///////////////////////
 // CHAT (NEW)
 ///////////////////////
 
+
 model Chat {
   id         String   @id @default(uuid())
   userId     String
-  databaseId String?   // 👈 which DB this chat is using
+  databaseId String?
 
-  title      String    // 👈 shown in history
+  title      String
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  user     User     @relation(fields: [userId], references: [id])
-  database DatabaseConnection? @relation(fields: [databaseId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  database DatabaseConnection? @relation(fields: [databaseId], references: [id], onDelete: SetNull)
 
   messages Message[]
 }
@@ -99,15 +98,12 @@ model Message {
   role      Role
   content   String
 
-  // SQL-specific fields (optional per message)
   generatedSQL String?
-  result       Json?
 
   createdAt DateTime @default(now())
 
-  chat Chat @relation(fields: [chatId], references: [id])
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }
-
 ///////////////////////
 // QUERY LOG (KEEP)
 ///////////////////////
