@@ -44,27 +44,23 @@ const Earth: React.FC<EarthProps> = ({
       width: width * 2,
       height: width * 2,
       phi: 0,
-      theta: theta,
-      dark: dark,
-      scale: scale,
-      diffuse: diffuse,
-      mapSamples: mapSamples,
-      mapBrightness: mapBrightness,
-      baseColor: baseColor,
-      markerColor: markerColor,
-      glowColor: glowColor,
+      theta,
+      dark,
+      scale,
+      diffuse,
+      mapSamples,
+      mapBrightness,
+      baseColor,
+      markerColor,
+      glowColor,
       opacity: 1,
       offset: [0, 0],
-      markers: [
-        // longitude latitude
-      ],
-      onRender: (state: Record<string, any>) => {
-        // Called on every animation frame.
-        // `state` will be an empty object, return updated params.\
+      markers: [],
+      onRender: (state: any) => {
         state.phi = phi
         phi += 0.003
       },
-    })
+    } as any); // 👈 FIX
 
     return () => {
       globe.destroy()

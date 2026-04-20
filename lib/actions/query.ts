@@ -291,9 +291,7 @@ export async function runQuery(
     if (db.dbType === "MYSQL") {
       const conn = await mysql.createConnection(db.connectionUrl);
 
-      const [rows] = await conn.query<Record<string, unknown>[]>(
-        finalSQL
-      );
+      const [rows] = await conn.query<RowDataPacket[]>(finalSQL);
 
       await conn.end();
 

@@ -4,9 +4,9 @@ import { Client } from "pg";
 import mysql from "mysql2/promise";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "../prisma";
-import { DatabaseType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
+import { DatabaseType } from "@prisma/client";
 
 
 const SECRET_KEY = process.env.DB_SECRET_KEY || "dev-secret-key";
@@ -142,7 +142,7 @@ export async function addDatabase(formData: FormData) {
   revalidatePath("/dashboard/databases");
 }
 
-export type DatabaseType = Awaited<ReturnType<typeof getDatabases>>[number];
+
 export async function getDatabases() {
   const { userId: clerkId } = await auth();
   if (!clerkId) throw new Error("Unauthorized");
