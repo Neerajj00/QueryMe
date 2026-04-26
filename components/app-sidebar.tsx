@@ -59,10 +59,8 @@ type appSidebarProps = React.ComponentProps<typeof Sidebar> & {
 }
 
 export function AppSidebar({user, ...props }: appSidebarProps ) {
-  
   return (
     <Sidebar collapsible="icon" {...props}>
-      
       <SidebarContent>
         <NavProjects projects={data.navbar} />
       </SidebarContent>
