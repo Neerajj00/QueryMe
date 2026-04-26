@@ -3,6 +3,11 @@ import { redirect } from "next/navigation";
 import Hero from "@/components/home/hero";
 import Features from "@/components/features";
 import Header from "@/components/Header";
+import { PricingSection } from "@/components/pricing-section";
+import { TestimonialsSection } from "@/components/testimonials";
+import { NewReleasePromo } from "@/components/new-release-promo";
+import { FAQSection } from "@/components/faq-section";
+import { StickyFooter } from "@/components/sticky-footer";
 
 export default async function Home() {
 
@@ -33,6 +38,25 @@ export default async function Home() {
       <div id="features">
         <Features />
       </div>
+       {/* Pricing Section */}
+       <div id="pricing">
+        <PricingSection />
+      </div>
+
+      {/* Testimonials Section */}
+      <div id="testimonials">
+        <TestimonialsSection />
+      </div>
+
+      <NewReleasePromo />
+
+      {/* FAQ Section */}
+      <div id="faq">
+        <FAQSection />
+      </div>
+
+      {/* Sticky Footer */}
+      <StickyFooter />
     </div>
   );
 }
