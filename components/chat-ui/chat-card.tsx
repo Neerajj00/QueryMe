@@ -125,10 +125,10 @@ const DEFAULT_SUGGESTIONS = [
   },
   {
     id: "2",
-    label: "Count total number of records",
+    label: "Count total number of users",
   },
   {
     id: "3",
-    label: "Get first 10 records from a table",
+    label: "Get the first 10 users",
   },
 ];
