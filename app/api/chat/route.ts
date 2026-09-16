@@ -37,57 +37,57 @@ export async function POST(req: NextRequest) {
 
 
     // ✅ Build prompt
-const prompt = `
-You are an expert SQL generator.
-
-Database type: ${db.dbType}
-
-Schema:
-${schemaText}
-
-Relationships:
-${relationshipText}
-
-User request:
-${message}
-
-Generate exactly one SELECT SQL query using only the tables and columns provided in the schema.
-
-Rules:
-- Return only the SQL query OR INVALID_QUERY.
-- No markdown.
-- No explanation.
-- Only SELECT queries.
-- Always include LIMIT 10.
-- For PostgreSQL, always wrap table and column names in double quotes.
-
-If the user's request clearly maps to the provided tables or columns, generate the SQL query.
-
-If the request is unrelated to the database, vague, random, or cannot be clearly mapped to the provided schema, return exactly:
-INVALID_QUERY
-
-When the request requires data from multiple tables:
-- Use JOINs.
-- Use only the relationships provided above.
-- Do not invent relationships.
-
-Examples:
-
-"show all users"
-→ SELECT * FROM "User" LIMIT 10;
-
-"show all chats with their user names"
-→ SELECT "Chat".*, "User"."name"
-   FROM "Chat"
-   JOIN "User" ON "Chat"."userId" = "User"."id"
-   LIMIT 10;
-
-"what is the capital of India"
-→ INVALID_QUERY;
-
-"asdasd"
-→ INVALID_QUERY;
-`;
+    const prompt = `
+    You are an expert SQL generator.
+    
+    Database: ${db.dbType}
+    
+    Schema:
+    ${schemaText}
+    
+    Relationships:
+    ${relationshipText}
+    
+    User request:
+    "${message}"
+    
+    Rules:
+    - Return ONLY one SQL query or INVALID_QUERY.
+    - No markdown or explanation.
+    - Only SELECT queries.
+    - Always use LIMIT 10.
+    - For PostgreSQL, use double quotes around table and column names.
+    - Use only tables and columns from the provided schema.
+    - Singular/plural names and obvious natural-language variations are allowed.
+    - Use JOINs when multiple tables are needed.
+    - Use only the relationships provided. Do not invent relationships.
+    - Return INVALID_QUERY for random, vague, unrelated, or unmappable requests.
+    - Metadata requests like "show all tables" are allowed.
+    - For PostgreSQL "show all tables", query information_schema.tables.
+    
+    Examples:
+    
+    "show all users"
+    → SELECT * FROM "User" LIMIT 10;
+    
+    "show chats with user names"
+    → SELECT "Chat".*, "User"."name"
+       FROM "Chat"
+       JOIN "User" ON "Chat"."userId" = "User"."id"
+       LIMIT 10;
+    
+    "show all tables"
+    → SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = 'public'
+       LIMIT 10;
+    
+    "what is the capital of India"
+    → INVALID_QUERY;
+    
+    "asdasd"
+    → INVALID_QUERY;
+    `;
 
 console.log("Prompt for AI:", prompt);
 
