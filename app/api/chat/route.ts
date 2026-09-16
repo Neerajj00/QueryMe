@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
 
     // ✅ Build prompt
-    const prompt = `
+const prompt = `
 You are an expert SQL generator.
 
 Database type: ${db.dbType}
@@ -48,56 +48,56 @@ ${schemaText}
 Relationships:
 ${relationshipText}
 
-User:
-"${message}"
+User request:
+${message}
+
+Generate exactly one SELECT SQL query using only the tables and columns provided in the schema.
 
 Rules:
-- Return ONLY ONE SQL query OR the string INVALID_QUERY
-- No explanation
-- No markdown
-- Only SELECT queries
-- Always include LIMIT 10
+- Return only the SQL query OR INVALID_QUERY.
+- No markdown.
+- No explanation.
+- Only SELECT queries.
+- Always include LIMIT 10.
+- For PostgreSQL, always wrap table and column names in double quotes.
 
-STRICT RULES:
-- Generate SQL ONLY if the user clearly asks about data in the database
-- The request must explicitly relate to table names or columns in the schema
+If the user's request clearly maps to the provided tables or columns, generate the SQL query.
 
-- If the input is:
-  - random text (e.g. "asdasd")
-  - vague (e.g. "something")
-  - general knowledge (e.g. "what is galaxy")
-  - not clearly mappable to schema
-
-→ THEN return exactly:
+If the request is unrelated to the database, vague, random, or cannot be clearly mapped to the provided schema, return exactly:
 INVALID_QUERY
 
-- DO NOT assume random text is a name
-- DO NOT guess mappings
-- DO NOT invent columns or tables
+When the request requires data from multiple tables:
+- Use JOINs.
+- Use only the relationships provided above.
+- Do not invent relationships.
 
-- ALWAYS use JOINs when querying multiple tables
-- ALWAYS follow the Relationships section when joining tables
+Examples:
 
-- If no relationships are provided, assume columns ending with 'Id' are foreign keys
-
-- If PostgreSQL:
-  ALWAYS wrap table and column names in double quotes
-
-Example valid:
 "show all users"
-→ SELECT * FROM "User" ORDER BY "createdAt" DESC LIMIT 10;
+→ SELECT * FROM "User" LIMIT 10;
 
-Example invalid:
+"show all chats with their user names"
+→ SELECT "Chat".*, "User"."name"
+   FROM "Chat"
+   JOIN "User" ON "Chat"."userId" = "User"."id"
+   LIMIT 10;
+
+"what is the capital of India"
+→ INVALID_QUERY;
+
 "asdasd"
-→ INVALID_QUERY
+→ INVALID_QUERY;
 `;
 
 console.log("Prompt for AI:", prompt);
 
     // ✅ Stream AI response
     const result = streamText({
-      model: groq("llama-3.3-70b-versatile"),
+      model: groq("openai/gpt-oss-120b"),
       prompt,
+    });
+    result.text.then((text) => {
+      console.log("AI RAW OUTPUT:", JSON.stringify(text));
     });
 
     // ✅ Save ASSISTANT message AFTER stream completes
